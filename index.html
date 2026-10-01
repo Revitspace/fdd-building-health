@@ -1051,8 +1051,8 @@ canvas { display: block; }
 .hbar-row:hover .hbar-fill { filter: brightness(1.08); }
 .hbar-row.is-dim { opacity: 0.45; }
 .hbar-row.is-selected .hbar-label { font-weight: 600; color: var(--text-primary); }
-/* give the label column room for the "Selected" chip while a facility row is selected */
-.card[data-widget="activeFaultsBySite"]:has(.hbar-row.is-selected) { --hbar-label: 196px; }
+/* give the label column room for the "Selected" chip while a facility row is selected (set on the rows: the card carries --hbar-label inline) */
+.card[data-widget="activeFaultsBySite"] .hbar-list:has(.hbar-row.is-selected) .hbar-row { --hbar-label: 196px; }
 .hbar-row.is-selected .hbar-label::after {
   content: "Selected";
   display: inline-block;
@@ -1935,6 +1935,7 @@ canvas { display: block; }
   .legend--stack .legend-item, .legend--tight .legend-item, .legend--cause .legend-item { height: 42px; }
 
   .hbar-row { --hbar-label: 118px !important; --hbar-value: 52px !important; height: 50px !important; }
+  .card[data-widget="activeFaultsBySite"] .hbar-list:has(.hbar-row.is-selected) .hbar-row { --hbar-label: 182px !important; }
   .table thead th { height: 40px; font-size: 12px; padding: 0 8px; }
   .table tbody td { height: 50px; font-size: 15px; padding: 0 8px; }
   .table { min-width: 560px; }
@@ -2736,6 +2737,8 @@ vs. last month</span></span>
   function yearOf(ts) { var di = dayInfo(ts); return di ? di.y : parts(ts).y; }
   function monthOf(ts) { var di = dayInfo(ts); return di ? di.m : parts(ts).m; }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  // Local-date arithmetic: a timestamp that represents a local date is moved by whole local days (DST-safe; 86,400,000-ms steps are not).
+  function addDays(ds, n) { return dayStart(ds + n * DAY + 12 * HOUR); }
 
   /* ---------- anchor / clock ---------- */
   var ANCHOR_FIXED = localMs(2026, 9, 18, 10, 32);
@@ -2744,13 +2747,18 @@ vs. last month</span></span>
   function now() { return anchor + (Date.now() - loadedAt); }
   var T0 = anchor; // generation anchor
   buildDayTable(T0 - 760 * DAY, T0 + 400 * DAY);
-  function at(m, d, h, mi) { var p = parts(T0); return localMs(p.y, m, d, h || 0, mi || 0); }
-  function T(m, d, h, mi) { return at(m, d, h, mi); }
+  // Calendar dates in the seed (SPEC §6.6 etc.) are written against the fixed anchor; under useRealClock they shift by whole
+  // local days with the anchor (SHIFT is 0 with the fixed anchor), so wall-clock times and relative ages are preserved.
+  var SHIFT = dayStart(T0) - dayStart(ANCHOR_FIXED);
+  function T(m, d, h, mi) {
+    var p = parts(ANCHOR_FIXED), q = parts(dayStart(localMs(p.y, m, d) + SHIFT + 12 * HOUR) + 12 * HOUR);
+    return localMs(q.y, q.m, q.d, h || 0, mi || 0);
+  }
 
   /* ---------- formatting ---------- */
-  var fmtCache = {};
-  function dtf(opts) { var k = JSON.stringify(opts); return fmtCache[k] || (fmtCache[k] = new Intl.DateTimeFormat('en-GB', Object.assign({ timeZone: TZ }, opts))); }
-  function partMap(f, ts) { var p = f.formatToParts(ts), o = {}; for (var i = 0; i < p.length; i++) o[p[i].type] = p[i].value; if (o.hour === '24') o.hour = '00'; return o; }
+  // Fixed month table: Intl en-GB renders September as "Sept" in Chrome; SPEC §1.5 requires "Sep".
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function mon(p) { return MONTHS[p.m - 1]; }
   var fmt = {
     int: function (n) { n = Math.round(+n || 0); var s = String(Math.abs(n)); var out = ''; while (s.length > 3) { out = ',' + s.slice(-3) + out; s = s.slice(0, -3); } return (n < 0 ? '-' : '') + s + out; },
     duration: function (min, opts) {
@@ -2759,17 +2767,14 @@ vs. last month</span></span>
       if (opts && opts.long && h >= 100) { var d = Math.floor(h / 24); return d + 'd ' + (h % 24) + 'h'; }
       return h + 'h ' + pad2(m) + 'm';
     },
-    dateTime: function (ts, opts) {
-      var o = partMap(dtf({ day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }), ts);
-      return o.day + ' ' + o.month + (opts && opts.year ? ' ' + o.year : '') + ' ' + o.hour + ':' + o.minute;
-    },
-    date: function (ts) { var o = partMap(dtf({ day: 'numeric', month: 'short' }), ts); return o.day + ' ' + o.month; },
-    dateYear: function (ts) { var o = partMap(dtf({ day: 'numeric', month: 'short', year: 'numeric' }), ts); return o.day + ' ' + o.month + ' ' + o.year; },
-    time: function (ts) { var o = partMap(dtf({ hour: '2-digit', minute: '2-digit', hour12: false }), ts); return o.hour + ':' + o.minute; },
-    month: function (ts) { return partMap(dtf({ month: 'short' }), ts).month; },
-    monthYear: function (ts) { var o = partMap(dtf({ month: 'short', year: 'numeric' }), ts); return o.month + ' ' + o.year; },
-    weekdayDate: function (ts) { var o = partMap(dtf({ weekday: 'short', day: 'numeric', month: 'short' }), ts); return o.weekday + ' ' + o.day + ' ' + o.month; },
-    hour: function (ts) { var o = partMap(dtf({ hour: '2-digit', hour12: false }), ts); return o.hour + ':00'; },
+    dateTime: function (ts, opts) { var p = parts(ts); return p.d + ' ' + mon(p) + (opts && opts.year ? ' ' + p.y : '') + ' ' + pad2(p.h) + ':' + pad2(p.mi); },
+    date: function (ts) { var p = parts(ts); return p.d + ' ' + mon(p); },
+    dateYear: function (ts) { var p = parts(ts); return p.d + ' ' + mon(p) + ' ' + p.y; },
+    time: function (ts) { var p = parts(ts); return pad2(p.h) + ':' + pad2(p.mi); },
+    month: function (ts) { return mon(parts(ts)); },
+    monthYear: function (ts) { var p = parts(ts); return mon(p) + ' ' + p.y; },
+    weekdayDate: function (ts) { var p = parts(ts); return p.wd + ' ' + p.d + ' ' + mon(p); },
+    hour: function (ts) { return pad2(parts(ts).h) + ':00'; },
     pct: function (x, d) { d = d || 0; return (+x || 0).toFixed(d) + '%'; },
     signed: function (n) { n = +n || 0; return (n > 0 ? '+' : '') + n; },
     age: function (ms) {
@@ -2821,8 +2826,9 @@ vs. last month</span></span>
     // Month = 29 whole days + today (SPEC §6.6: 20 Aug 00:00 → 18 Sep 10:32); Week = 6 whole days + today; Now = rolling 24 h; Year = 12 calendar months.
     // compareAt = "this time last period" (now − period) for point-in-time comparisons.
     if (range === 'year') { var s = addMonths(monthStart(n), -11); var ps = addMonths(s, -12); return { start: s, end: n, prevStart: ps, prevEnd: s, compareAt: addMonths(monthStart(n), -12) + (n - monthStart(n)), ms: n - s }; }
-    var start = range === 'now' ? n - r.ms : dayStart(n) - (r.key === 'week' ? 6 : 29) * DAY;
-    return { start: start, end: n, prevStart: start - r.ms, prevEnd: start, compareAt: n - r.ms, ms: r.ms };
+    if (range === 'now') return { start: n - r.ms, end: n, prevStart: n - 2 * r.ms, prevEnd: n - r.ms, compareAt: n - r.ms, ms: r.ms };
+    var days = r.key === 'week' ? 7 : 30, today = dayStart(n), start = addDays(today, -(days - 1));
+    return { start: start, end: n, prevStart: addDays(start, -days), prevEnd: start, compareAt: addDays(today, -days) + (n - today), ms: r.ms };
   }
   // 12 equal bins across the window (sparklines, recurring TREND); year = calendar months
   function binsFor(range, n) {
@@ -3052,8 +3058,9 @@ vs. last month</span></span>
   var faults = [], events = [], workOrders = [], ppmTasks = [], dataPoints = [], runtimeDaily = [], notifications = [];
   var faultById = {}, woById = {};
   var ASSIGNEES = ['J. Okafor', 'M. Reid', 'S. Patel', 'A. Novak', 'L. Chen', 'D. Murphy'];
-  var idSeq = { fault: 0, event: 0, wo: 4140, ppm: 1188, notif: 0 };
-  var MONTH_START = dayStart(T0) - 29 * DAY;      // 20 Aug 00:00 (= windowFor('month').start at the anchor)
+  var idSeq = { fault: 0, event: 0, wo: 0, ppm: 1188, notif: 0 };
+  var TODAY = dayStart(T0);
+  var MONTH_START = addDays(TODAY, -29);          // 20 Aug 00:00 (= windowFor('month').start at the anchor)
   var BIN_MS = (T0 - MONTH_START) / 12;
   function binStart(i) { return MONTH_START + i * BIN_MS; }
   function inBin(i, frac) { return Math.round((binStart(i) + frac * BIN_MS) / MIN) * MIN; }
@@ -3120,6 +3127,7 @@ vs. last month</span></span>
   activeSeed.forEach(function (f) { faultById[f.id] = f; });
   faultById['FLT-2026-00931'].recommendedAction = 'Verify supply air temperature sensor calibration against a reference probe; check mixing damper actuator response (command 35 %, feedback 12 %); confirm CHW valve authority.';
   faultById['FLT-2026-00931'].acknowledgedAt = T(9, 17, 10, 41); faultById['FLT-2026-00931'].acknowledgedBy = 'S. Patel';
+  var HERO_FAULT_OCC = { 'FLT-2026-00931': { occurrences: 9, lastAt: T(9, 18, 9, 58) } };   // SPEC §6.10: the rule has re-triggered 9 times, last 18 Sep 09:58
 
   /* ---------- 2. the 66 resolved faults raised in the last 30 days (planned so every §6.6 total holds) ----------
    * [asset, rule, bin(0..11), out(1 = resolved outside SLA)]  — S1 44 (HVAC 13, Elec 10, Controls 8, Plumb 4, Fire 3, BMS 2, Lifts 2, Other 2), S2 22 */
@@ -3130,24 +3138,31 @@ vs. last month</span></span>
     ['Chiller-01', 'CH-LCHWT-HI', 1, 1], ['Chiller-01', 'CH-SHORT-CYC', 4],
     ['Boiler-02', 'BLR-RWT-LOW', 1], ['Boiler-02', 'BLR-RWT-LOW', 3, 1],
     ['VAV-12', 'VAV-DMP-NR', 1, 1],
-    ['MCC-01', 'EL-PH-IMB', 3], ['MCC-01', 'EL-PH-IMB', 8], ['DB-L1-A', 'EL-BRK-TRIP', 5], ['DB-G-A', 'EL-BRK-TRIP', 9], ['UPS-01', 'UPS-BATT', 7],
-    ['Meter-E-02', 'EL-CT-IMPL', 2], ['Meter-E-02', 'EL-CT-IMPL', 6], ['DB-L2-A', 'EL-CT-IMPL', 4], ['DB-L3-A', 'EL-CT-IMPL', 8], ['MSB-01', 'EL-CT-IMPL', 10],
-    ['CO2-L1-01', 'SNS-FLAT', 1], ['TEMP-G-01', 'SNS-FLAT', 7], ['TEMP-L2-01', 'SNS-OOR', 3], ['CO2-G-02', 'SNS-OOR', 9], ['TEMP-L1-01', 'SNS-DRIFT', 5], ['CO2-L3-01', 'CO2-HI', 2], ['CO2-L2-02', 'CO2-HI', 8], ['CTRL-07', 'CTRL-SP-HUNT', 6],
-    ['WH-01', 'WH-TEMP-LOW', 2], ['WH-02', 'WH-TEMP-LOW', 8], ['SP-01', 'SPK-JOCKEY', 4], ['BWP-01', 'BWP-DS-FAIL', 10],
+    ['MCC-01', 'EL-PH-IMB', 3], ['MCC-01', 'EL-PH-IMB', 8], ['DB-L1-A', 'EL-BRK-TRIP', 9, 0, 'W'], ['DB-G-A', 'EL-BRK-TRIP', 11, 0, 'N'], ['UPS-01', 'UPS-BATT', 7],
+    ['Meter-E-02', 'EL-CT-IMPL', 2], ['DB-L2-A', 'EL-CT-IMPL', 9, 0, 'W'], ['Meter-E-02', 'EL-CT-IMPL', 9, 0, 'W'], ['DB-L3-A', 'EL-CT-IMPL', 9, 0, 'W'], ['MSB-01', 'EL-CT-IMPL', 9, 0, 'W'],
+    ['CO2-L1-01', 'SNS-FLAT', 11, 0, 'N'], ['TEMP-G-01', 'SNS-FLAT', 9, 0, 'W'], ['TEMP-L2-01', 'SNS-OOR', 9, 0, 'W'], ['CO2-G-02', 'SNS-OOR', 9, 0, 'W'], ['TEMP-L1-01', 'SNS-DRIFT', 11, 0, 'N'], ['CO2-L3-01', 'CO2-HI', 9, 0, 'W'], ['CO2-L2-02', 'CO2-HI', 9, 0, 'W'], ['CTRL-07', 'CTRL-SP-HUNT', 6],
+    ['WH-01', 'WH-TEMP-LOW', 2], ['WH-02', 'WH-TEMP-LOW', 8], ['SP-01', 'SPK-JOCKEY', 9, 0, 'W'], ['BWP-01', 'BWP-DS-FAIL', 9, 0, 'W'],
     ['FP-01', 'FP-GEN-FAULT', 1], ['FP-01', 'FP-GEN-FAULT', 6], ['FP-01', 'FP-IFACE', 8],
-    ['BMS-CTRL-03', 'BMS-PT-STALE', 3], ['BMS-CTRL-01', 'BMS-OVERRIDE', 9],
+    ['BMS-CTRL-03', 'BMS-PT-STALE', 9, 0, 'W'], ['BMS-CTRL-01', 'BMS-OVERRIDE', 11, 0, 'N'],
     ['Lift-03', 'LFT-DOOR', 2], ['Lift-03', 'LFT-OOS', 6, 1],
-    ['Meter-E-01', 'MTR-ROLL', 0], ['Meter-G-01', 'MTR-ROLL', 9],
+    ['Meter-E-01', 'MTR-ROLL', 0], ['Meter-G-01', 'MTR-ROLL', 11, 0, 'N'],
     // S2
-    ['AHU-W01', 'AHU-FLT-DP', 3], ['AHU-W01', 'AHU-FLT-DP', 8, 1], ['AHU-W02', 'AHU-SAT-DEV', 1], ['AHU-W02', 'AHU-SAT-DEV', 7], ['AHU-W02', 'AHU-SIM-HC', 10],
-    ['FCU-W-M01', 'FCU-ZT-DEV', 2], ['FCU-W-M02', 'FCU-VLV-LEAK', 5], ['Pump-W01', 'PMP-DP-LOW', 9], ['EXF-W-A1', 'EXF-RUN-UNOCC', 6],
+    ['AHU-W01', 'AHU-FLT-DP', 3], ['AHU-W01', 'AHU-FLT-DP', 8, 1], ['AHU-W02', 'AHU-SAT-DEV', 1], ['AHU-W02', 'AHU-SAT-DEV', 7], ['AHU-W02', 'AHU-SIM-HC', 9, 0, 'W'],
+    ['FCU-W-M01', 'FCU-ZT-DEV', 9, 0, 'W'], ['FCU-W-M02', 'FCU-VLV-LEAK', 11, 0, 'N'], ['Pump-W01', 'PMP-DP-LOW', 9], ['EXF-W-A1', 'EXF-RUN-UNOCC', 6],
     ['MSB-W01', 'EL-V-IMB', 2], ['MSB-W01', 'EL-V-IMB', 7], ['DB-W-02', 'EL-CT-IMPL', 4], ['DB-W-01', 'EL-BRK-TRIP', 10],
     ['CTRL-W-H1', 'CTRL-SP-HUNT', 4, 1], ['VSD-EX-W02', 'VSD-FB-MM', 6],
     ['BWP-W01', 'BWP-DS-FAIL', 1, 1], ['WH-W01', 'WH-TEMP-LOW', 8],
     ['FP-W01', 'FP-IFACE', 5], ['FP-W01', 'FP-GEN-FAULT', 9],
-    ['CTRL-W-P1', 'BMS-OFFLINE', 3], ['CTRL-W-G1', 'BMS-OVERRIDE', 7],
+    ['CTRL-W-P1', 'BMS-OFFLINE', 3], ['CTRL-W-G1', 'BMS-OVERRIDE', 11, 0, 'N'],
     ['Lift-W01', 'LFT-COMMS', 5]
   ];
+  // 5th field: 'N' = open at the Now comparison point (T0 − 24 h), 'W' = open at the Week comparison point (T0 − 7 d).
+  // They are detected 2–17 h ('N') / 2–23 h ('W') before that instant — in array order, spread deterministically so no day exceeds
+  // its SPEC §4.5 severity split — and resolve 30 min – 4 h after it (assignDurations), so the comparison deltas read
+  // ↑ 2 (22 open yesterday) and ↑ 4 (20 open last week) while Month resolved / SLA / MTTR stay exact. Mostly S1 faults: the
+  // Warehouse MTTR budget (984 min × 23 incl. two 64-h pre-window faults) leaves little room for long straddlers.
+  var STRADDLE = { N: { t: T0 - 24 * HOUR, first: 2, step: 2.5 }, W: { t: windowFor('week', T0).compareAt, first: 2, step: 1.5 } };
+  var straddleSeq = { N: 0, W: 0 };
   // Extra events on ranked assets (month bins): transient auto-cleared events ('T') and re-triggers of open faults ('R')
   var EXTRA_EVENTS = [
     ['AHU-04', 'AHU-SAT-DEV', 'T', 6], ['AHU-04', 'AHU-DMP-STK', 'T', 7], ['AHU-04', 'AHU-SAT-DEV', 'T', 7], ['AHU-04', 'AHU-DMP-STK', 'T', 8], ['AHU-04', 'AHU-SAT-DEV', 'T', 10],
@@ -3169,10 +3184,11 @@ vs. last month</span></span>
   var resolvedInRange = RESOLVED_PLAN.map(function (p, i) {
     var bin = p[2], frac;
     frac = (bin === 11) ? 0.15 + rnd() * 0.6 : 0.1 + rnd() * 0.8;
-    var det = inBin(bin, frac);
+    var det = inBin(bin, frac), st = p[4] ? STRADDLE[p[4]] : null;
+    if (st) { var k = straddleSeq[p[4]]++; det = Math.round((st.t - (st.first + k * st.step) * HOUR - rInt(0, 50) * MIN) / MIN) * MIN; }
     if (p[0] === 'Pump-HW-02') det = T(9, 16, 20, 10);
     var f = makeFault({ asset: p[0], rule: p[1], detectedAt: det, status: 'resolved', assignee: rPick(ASSIGNEES), fixedResolved: p[0] === 'Pump-HW-02' });
-    f._out = !!p[3]; f._bin = bin;
+    f._out = !!p[3]; f._bin = bin; if (st) f._pinOpenAt = st.t;
     if (p[0] === 'Pump-HW-02') { f.resolvedAt = T(9, 17, 16, 42); }
     return f;
   });
@@ -3185,50 +3201,67 @@ vs. last month</span></span>
 
   /* ---------- 4. history — 24 months of incidents with a seasonal profile ---------- */
   // incidents per calendar month (Oct 2024 … Aug 2026); index 0 = Sep 2024
-  var HIST_START = localMs(2024, 9, 1);
+  var HIST_START = addMonths(monthStart(T0), -24);
   var MONTH_INCIDENTS = [78, 74, 82, 86, 94, 88, 84, 78, 84, 96, 102, 86, 70, 78, 82, 90, 84, 80, 74, 80, 92, 98, 84, 80];
   // trend (event) daily targets
-  var MONTH_EVENTS = [420, 430, 480, 545, 585, 565, 530, 495, 545, 600, 640, 625, 410, 455, 520, 560, 540, 505, 470, 520, 575, 610, 900, 837, 370];
+  // index 13..21 = Oct 2025 … Jun 2026 (SPEC §6.7 year bars); Jul 2026 = 212 over 1–18 Jul + the explicit 19–31 Jul dailies ≈ 610;
+  // Aug/Sep 2026 are fully covered by the explicit daily arrays; the previous year (index 1..12) runs ≈ 1.1× the current one.
+  var MONTH_EVENTS = [600, 450, 500, 570, 615, 595, 555, 515, 570, 630, 670, 705, 655, 410, 455, 520, 560, 540, 505, 470, 520, 575, 212, 837, 370];
   var CUR_DAILY = [6, 10, 18, 12, 17, 11, 19, 15, 23, 14, 25, 13, 21, 18, 32, 18, 30, 16, 27, 16, 21, 16, 32, 14, 25, 16, 21, 15, 23, 12, 18];
   var PREV_DAILY = [26, 25, 27, 29, 33, 40, 45, 47, 46, 43, 42, 42, 42, 41, 38, 36, 35, 33, 31, 32, 33, 35, 37, 33, 32, 31, 30, 32, 29, 28, 27];
-  var TODAY = dayStart(T0);
   var dayTargets = new Map();
   (function buildDayTargets() {
     var m, ds, i;
     for (m = 0; m < MONTH_EVENTS.length; m++) {
       var ms = addMonths(HIST_START, m), me = addMonths(HIST_START, m + 1), days = [];
-      for (ds = ms; ds < me && ds <= TODAY; ds += DAY) days.push(ds);
+      for (ds = ms; ds < me && ds <= TODAY; ds = addDays(ds, 1)) days.push(ds);
       var w = days.map(function (d) { return isWeekend(d) ? 0.55 : 1 + rnd() * 0.5; });
       var ws = sum(w), total = MONTH_EVENTS[m];
       var acc = 0;
       for (i = 0; i < days.length; i++) { var v = Math.round(total * w[i] / ws); acc += v; dayTargets.set(days[i], v); }
     }
-    for (i = 0; i < 31; i++) { dayTargets.set(TODAY - (30 - i) * DAY, CUR_DAILY[i]); dayTargets.set(TODAY - (61 - i) * DAY, PREV_DAILY[i]); }
+    for (i = 0; i < 31; i++) { dayTargets.set(addDays(TODAY, -(30 - i)), CUR_DAILY[i]); dayTargets.set(addDays(TODAY, -(61 - i)), PREV_DAILY[i]); }
   })();
-  var PREV_MONTH_START = MONTH_START - 30 * DAY, PREV_MONTH_END = MONTH_START;   // 21 Jul 00:00 → 20 Aug 00:00
-  var PREV_ANCHOR = T0 - 30 * DAY;                                               // 19 Aug 10:32 ("this time last month")
+  var PREV_MONTH_START = addDays(MONTH_START, -30), PREV_MONTH_END = MONTH_START;   // 21 Jul 00:00 → 20 Aug 00:00
+  var PREV_ANCHOR = windowFor('month', T0).compareAt;                               // 19 Aug 10:32 ("this time last month")
 
   var s1Assets = assets.filter(function (a) { return a.siteId === 's1'; }), s2Assets = assets.filter(function (a) { return a.siteId === 's2'; });
   var HERO_MAIN_RULE = { 'AHU-04': 'AHU-SAT-DEV', 'AHU-08': 'AHU-FAN-VIB', 'Chiller-01': 'CH-LCHWT-HI', 'Boiler-02': 'BLR-RWT-LOW', 'Lift-03': 'LFT-COMMS', 'VAV-12': 'VAV-DMP-NR' };
+  // Planned hero incidents per 12 months (spread evenly over the calendar months) so the Year view ranks the hero assets first
+  var HERO_HIST = { 'AHU-04': 25, 'AHU-08': 23, 'Chiller-01': 19, 'Boiler-02': 18, 'Lift-03': 17, 'VAV-12': 17 };
+  // Category weights for the remaining history incidents, towards the SPEC §6.7 year split (356/198/152/94/66/58/50/38) but tempered by
+  // the asset count per category (two fire panels / six plumbing sets would otherwise out-rank the hero assets over a year)
+  var HIST_CAT_WEIGHTS = [['hvac', 35], ['electrical', 18], ['controls', 14], ['plumbing', 7], ['fire', 3.5], ['bms', 7], ['lifts', 3], ['other', 4.5]];
+  var histPool = { s1: {}, s2: {} };
+  assets.forEach(function (a) { if (HERO[a.id]) return; (histPool[a.siteId][a.category] = histPool[a.siteId][a.category] || []).push(a); });
+  function pickHistAsset() {
+    var site = rnd() < 0.67 ? 's1' : 's2', cat = rWeighted(HIST_CAT_WEIGHTS), list = histPool[site][cat];
+    return list && list.length ? rPick(list) : rPick(site === 's1' ? s1Assets : s2Assets);
+  }
   var histFaults = [];
   (function buildHistory() {
     var m, ds;
+    function addIncident(asset, d) {
+      var rule = HERO_MAIN_RULE[asset.id] && rnd() < 0.6 ? ruleByCode[HERO_MAIN_RULE[asset.id]] : rPick(ruleFor(asset));
+      var det = randTimeInDay(d);
+      if (det >= dayStart(PREV_ANCHOR)) return;
+      var f = makeFault({ asset: asset.id, rule: rule.code, detectedAt: det, status: 'resolved', assignee: rnd() < 0.7 ? rPick(ASSIGNEES) : null });
+      f._hist = true; histFaults.push(f);
+    }
     for (m = 0; m < MONTH_INCIDENTS.length; m++) {
       var ms = addMonths(HIST_START, m), me = addMonths(HIST_START, m + 1);
-      var days = []; for (ds = ms; ds < me; ds += DAY) if (ds + DAY <= MONTH_START) days.push(ds);
+      var days = []; for (ds = ms; ds < me; ds = addDays(ds, 1)) if (addDays(ds, 1) <= MONTH_START) days.push(ds);
       if (!days.length) continue;
-      var perDay = MONTH_INCIDENTS[m] / days.length;
+      // hero incidents: budget × (month index within the year) → whole incidents on random days of the month
+      var mi = m % 12;
+      Object.keys(HERO_HIST).forEach(function (id) {
+        var b = HERO_HIST[id], n = Math.floor(b * (mi + 1) / 12) - Math.floor(b * mi / 12);
+        for (var k = 0; k < n; k++) addIncident(assetById[id], rPick(days));
+      });
+      var perDay = (MONTH_INCIDENTS[m] - 10) / days.length;   // ≈ 10 hero incidents per month are planned above
       days.forEach(function (d) {
         var n = rPoisson(perDay * (isWeekend(d) ? 0.6 : 1.15));
-        for (var k = 0; k < n; k++) {
-          // ~9.5 % of history incidents land on the hero assets so the Year view ranks them first
-          var asset = rnd() < 0.095 ? assetById[rWeighted([['AHU-04', 12], ['AHU-08', 9], ['Chiller-01', 7], ['Boiler-02', 7], ['Lift-03', 7], ['VAV-12', 5]])] : (rnd() < 0.67 ? rPick(s1Assets) : rPick(s2Assets));
-          var rule = HERO_MAIN_RULE[asset.id] && rnd() < 0.6 ? ruleByCode[HERO_MAIN_RULE[asset.id]] : rPick(ruleFor(asset));
-          var det = randTimeInDay(d);
-          if (det >= dayStart(PREV_ANCHOR)) continue;
-          var f = makeFault({ asset: asset.id, rule: rule.code, detectedAt: det, status: 'resolved', assignee: rnd() < 0.7 ? rPick(ASSIGNEES) : null });
-          f._hist = true; histFaults.push(f);
-        }
+        for (var k = 0; k < n; k++) addIncident(pickHistAsset(), d);
       });
     }
   })();
@@ -3280,6 +3313,8 @@ vs. last month</span></span>
       if (f._fixedResolved) return;
       var maxAbs = Math.floor((T0 - 20 * MIN - f.detectedAt) / MIN);
       drawDuration(f, f._out, maxAbs); groups[f.siteId].push(f);
+      // straddlers of the Now / Week comparison points stay open until 30 min – 4 h after that instant (still within SLA)
+      if (f._pinOpenAt) { var pm = Math.ceil((f._pinOpenAt + rInt(30, 240) * MIN - f.detectedAt) / MIN); f._min = Math.max(f._min, pm); f._max = Math.max(f._max, f._min); f._dur = Math.max(f._dur, f._min); }
     });
     var fixedSum = { s1: 0, s2: 0 };
     resolvedInRange.concat(preWindow).forEach(function (f) { if (f._fixedResolved) fixedSum[f.siteId] += Math.round((f.resolvedAt - f.detectedAt) / MIN); });
@@ -3292,13 +3327,25 @@ vs. last month</span></span>
     histFaults.forEach(function (f) {
       var maxAbs = Math.floor((HIST_CAP - f.detectedAt) / MIN);
       if (f.detectedAt < PREV_MONTH_START - 3 * DAY) maxAbs = Math.min(maxAbs, Math.floor((PREV_MONTH_START - 10 * MIN - f.detectedAt) / MIN)); // only recent faults may straddle the previous window's start
-      var out = rnd() < 0.09;
+      // ≈ 85 % within SLA over the year (SPEC §6.7: 84 / 16); breaches land mostly on High / Critical / Medium faults so the
+      // Year MTTR stays near 19 h (a breached Low fault runs ≥ 7 days)
+      var out = rnd() < (f.severity === 'low' ? 0.04 : f.severity === 'medium' ? 0.12 : 0.22);
       if (maxAbs < 30) { out = false; }
       drawDuration(f, out, Math.max(30, maxAbs));
       if (f._min > maxAbs) f._min = Math.max(5, maxAbs);
       if (f._dur > maxAbs) { f._dur = Math.max(5, maxAbs); f._max = f._dur; }
       f.resolvedAt = f.detectedAt + f._dur * MIN;
     });
+    // Year comparison point ("this time last year"): 15 faults open at that instant (SPEC §6.7 Active ↑ 9 (15)) — stretch the
+    // most recent history faults detected in the week before it so they resolve shortly after it.
+    (function pinYearCohort() {
+      var YA = windowFor('year', T0).compareAt, target = 15;
+      var open = faults.filter(function (f) { return f.detectedAt <= YA && (f.resolvedAt === null || f.resolvedAt > YA); }).length;
+      var cands = histFaults.filter(function (f) { return f.detectedAt < YA && f.detectedAt >= YA - 12 * DAY && f.resolvedAt <= YA; }).sort(function (a, b) { return b.detectedAt - a.detectedAt; });
+      for (var i = 0; i < cands.length && open < target; i++, open++) {
+        var f = cands[i]; f._dur = Math.round((YA + rInt(30, 900) * MIN - f.detectedAt) / MIN); f._min = f._max = f._dur; f.resolvedAt = f.detectedAt + f._dur * MIN;
+      }
+    })();
     // the previous-window resolved set is grouped by resolvedAt (straddlers from July are bounded so they stay inside the window)
     histFaults.forEach(function (f) {
       if (f.resolvedAt < PREV_MONTH_START || f.resolvedAt > HIST_CAP) return;
@@ -3394,30 +3441,51 @@ vs. last month</span></span>
     var days = Array.from(dayTargets.keys()).sort(function (a, b) { return a - b; });
     var recent = [], ruleLog = {}, satUntil = {}, rr = { s1: 0, s2: 0 };
     var TRANSIENT_S1 = TRANSIENT_POOL.filter(function (x) { return x.siteId === 's1'; }), TRANSIENT_S2 = TRANSIENT_POOL.filter(function (x) { return x.siteId === 's2'; });
-    // "recurring" (≥ 3 occurrences of one rule on one asset in a window) is reserved for the planned assets: every other asset is held to ≤ 2 per rule per 31 days
+    // "recurring" (≥ 3 occurrences of one rule on one asset in a window) is reserved for the planned assets: every other asset is held
+    // to ≤ 2 transients per rule per 31 days and ≤ 5 per rule per rolling 365 days (so Year rankings stay with the hero assets).
     // transients logged as they are placed; detections are known up front, so a transient also looks 31 days AHEAD for detections of that rule
     var detLog = {};
     function ruleCount(assetId, code, ds) {
-      var l = ruleLog[assetId + '|' + code], n = 0, i;
-      if (l) { while (l.length && l[0] < ds - 31 * DAY) l.shift(); n = l.length; }
+      var l = ruleLog[assetId + '|' + code], n = 0, y = 0, i;
+      if (l) { while (l.length && l[0] < ds - 365 * DAY) l.shift(); y = l.length; for (i = l.length - 1; i >= 0 && l[i] >= ds - 31 * DAY; i--) n++; }
       var d = detLog[assetId + '|' + code]; if (d) for (i = 0; i < d.length; i++) if (d[i] >= ds - 31 * DAY && d[i] <= ds + 31 * DAY) n++;
-      return n;
+      return { month: n, year: y };
     }
     function logRule(assetId, code, ds) { var k = assetId + '|' + code; (ruleLog[k] = ruleLog[k] || []).push(ds); }
     var faultsByDay = new Map();
     faults.forEach(function (f) { var ds = dayStart(f.detectedAt); var l = faultsByDay.get(ds); if (!l) { l = []; faultsByDay.set(ds, l); } l.push(f); if (RANKED.indexOf(f.assetId) < 0) { var k = f.assetId + '|' + f.ruleCode; (detLog[k] = detLog[k] || []).push(ds); } });
+    // assets with an incident in the trailing 30 days: transients are drawn from them first (SPEC §6.5 — transients cluster on faulty equipment)
+    var recentIncidents = [], recentRR = { s1: 0, s2: 0 };
+    // relaxYear: ignore the 365-day cap (the 31-day cap is never relaxed — it is what keeps "recurring" to the planned assets)
+    function pickFromPool(pool, siteKey, ds, rrMap, relaxYear) {
+      var tries = 0;
+      while (tries++ < pool.length) {
+        var cand = pool[rrMap[siteKey]++ % pool.length];
+        if (!relaxYear && (satUntil[cand.id] || 0) > ds) continue;
+        var okRules = ruleFor(cand).filter(function (r) { var c = ruleCount(cand.id, r.code, ds); return c.month < 2 && (relaxYear || c.year < 6); });
+        if (!okRules.length) { if (!relaxYear) satUntil[cand.id] = ds + 7 * DAY; continue; }
+        return { a: cand, rule: rPick(okRules) };
+      }
+      return null;
+    }
     days.forEach(function (ds) {
       var target = dayTargets.get(ds), list = dayEvents(ds), dayEnd = Math.min(ds + DAY, T0 - 5 * MIN);
+      var inMonthWindow = ds >= MONTH_START - 4 * DAY;
       (faultsByDay.get(ds) || []).forEach(function (f) {
         var ranked = RANKED.indexOf(f.assetId) >= 0;
         if (ranked && f.detectedAt >= MONTH_START - 4 * DAY) return;           // month events on ranked assets are fully planned
-        if (rnd() < (ranked ? 0.8 : 0.6)) recent.push({ f: f, left: 1 + rPoisson(ranked ? 1.6 : 1.5), until: Math.min((f.resolvedAt || T0) - 5 * MIN, ranked ? MONTH_START - DAY : T0) });
+        // history incidents re-trigger freely (≈ 1 + Poisson(3) events each); inside the current month non-ranked incidents stay small so the
+        // planned hero assets keep the Top Faulted / Recurring rankings
+        var p = inMonthWindow ? 0.6 : 0.9, lambda = inMonthWindow ? 1.5 : (HERO[f.assetId] ? 3.5 : 2);
+        if (rnd() < p) recent.push({ f: f, left: 1 + rPoisson(lambda), until: Math.min((f.resolvedAt || T0) - 5 * MIN, ranked ? MONTH_START - DAY : T0) });
+        if (RANKED.indexOf(f.assetId) < 0) recentIncidents.push({ ds: ds, a: assetById[f.assetId] });
       });
+      while (recentIncidents.length && recentIncidents[0].ds < ds - 30 * DAY) recentIncidents.shift();
       var room = target - list.length, k;
       for (k = recent.length - 1; k >= 0 && room > 0; k--) {
         var r = recent[k];
         if (r.until < ds) { recent.splice(k, 1); continue; }
-        var n = Math.min(r.left, room, 3);
+        var n = Math.min(r.left, room, 4);
         for (i = 0; i < n; i++) {
           var ts = Math.max(r.f.detectedAt + 20 * MIN, randTimeInDay(ds, Math.min(dayEnd, r.until)));
           if (ts > r.until || ts >= dayEnd) break;
@@ -3425,22 +3493,24 @@ vs. last month</span></span>
         }
         if (r.left <= 0) recent.splice(k, 1);
       }
-      if (recent.length > 60) recent.splice(0, recent.length - 60);
+      if (recent.length > 80) recent.splice(0, recent.length - 80);
+      var recentS1 = null, recentS2 = null;
       while (room > 0) {
-        // round-robin over the site's pool (even spread), skipping assets whose rules are all at the recurrence cap
-        var siteKey = rnd() < 0.67 ? 's1' : 's2', pool = siteKey === 's1' ? TRANSIENT_S1 : TRANSIENT_S2, a = null, rule = null, tries = 0;
-        while (tries++ < pool.length) {
-          var cand = pool[rr[siteKey]++ % pool.length];
-          if ((satUntil[cand.id] || 0) > ds) continue;
-          var okRules = ruleFor(cand).filter(function (r) { return ruleCount(cand.id, r.code, ds) < 2; });
-          if (!okRules.length) { var soonest = Infinity; ruleFor(cand).forEach(function (r) { var l = ruleLog[cand.id + '|' + r.code]; if (l && l.length) soonest = Math.min(soonest, l[0] + 31 * DAY); }); satUntil[cand.id] = soonest === Infinity ? ds + DAY : soonest; continue; }
-          a = cand; rule = rPick(okRules); break;
+        // transients: assets with a recent incident first (round-robin), then the site's whole pool, skipping assets whose rules are all at a cap
+        var siteKey = rnd() < 0.67 ? 's1' : 's2', pool = siteKey === 's1' ? TRANSIENT_S1 : TRANSIENT_S2, pick = null;
+        if (recentS1 === null) {
+          var seen = {}; recentS1 = []; recentS2 = [];
+          recentIncidents.forEach(function (x) { if (!seen[x.a.id] && x.a.status !== 'offline') { seen[x.a.id] = 1; (x.a.siteId === 's1' ? recentS1 : recentS2).push(x.a); } });
         }
-        if (!a) { a = rPick(pool); rule = rPick(ruleFor(a)); }   // capacity exhausted: accept a third event of that rule
-        logRule(a.id, rule.code, ds);
+        var rp = siteKey === 's1' ? recentS1 : recentS2;
+        if (rp.length && rnd() < 0.4) pick = pickFromPool(rp, siteKey, ds, recentRR, false);
+        if (!pick) pick = pickFromPool(pool, siteKey, ds, rr, false);
+        if (!pick) pick = pickFromPool(pool, siteKey, ds, rr, true);
+        if (!pick) { var a0 = rPick(pool); pick = { a: a0, rule: rPick(ruleFor(a0)) }; }   // every rule of every asset at the 31-day cap: accept one over it
+        logRule(pick.a.id, pick.rule.code, ds);
         var t2 = randTimeInDay(ds, dayEnd - MIN);
         if (t2 >= dayEnd) t2 = dayEnd - rInt(1, 30) * MIN;
-        list.push(makeEvent(null, a, t2, rInt(5, 20), 'low', rule)); room--;
+        list.push(makeEvent(null, pick.a, t2, rInt(5, 20), 'low', pick.rule)); room--;
       }
       // (c) severity split per day (SPEC §4.5): Critical 10 %, High 20 %, Low 30 %, Medium remainder — flexible events fill the gaps
       var tot = list.length, want = { critical: Math.round(0.10 * tot), high: Math.round(0.20 * tot), low: Math.round(0.30 * tot) };
@@ -3488,6 +3558,7 @@ vs. last month</span></span>
       if (e._fault) { if (!e._detection) { e._fault.occurrences++; } if (e.occurredAt > e._fault.lastOccurrenceAt) e._fault.lastOccurrenceAt = e.occurredAt; }
       if (e.clearedAt !== null && e.clearedAt > T0) e.clearedAt = null;
     });
+    Object.keys(HERO_FAULT_OCC).forEach(function (id) { var f = faultById[id]; if (f) { f.occurrences = HERO_FAULT_OCC[id].occurrences; f.lastOccurrenceAt = HERO_FAULT_OCC[id].lastAt; } });
   })();
   stage('events');
   // per-asset / per-fault event indexes
@@ -3500,7 +3571,8 @@ vs. last month</span></span>
     faults.forEach(function (f) {
       if (!f.workOrderId && !(f.assignee && f.status !== 'open' && rnd() < 0.55)) return;
       var asset = assetById[f.assetId];
-      var id = f.workOrderId || ('WO-' + String(yearOf(f.detectedAt)).slice(2) + '-' + String(idSeq.wo++ - 2000 + Math.floor((f.detectedAt - HIST_START) / DAY) * 3).padStart(5, '0'));
+      // generated ids run 02000 upwards (≈ 810 orders) so they stay clear of the explicit 04066–04131 block and of the live counter (04142+)
+      var id = f.workOrderId || ('WO-' + String(yearOf(f.detectedAt)).slice(2) + '-' + String(2000 + idSeq.wo++).padStart(5, '0'));
       var wo = { id: id, faultId: f.id, assetId: f.assetId, status: WO_STATUS[f.status], priority: 'P' + (5 - SEV_RANK[f.severity]), raisedAt: (f.acknowledgedAt || f.detectedAt) + rInt(5, 60) * MIN,
         assignedTo: f.assignee || rPick(ASSIGNEES), contractor: asset.contractor, scheduledFor: null, completedAt: f.resolvedAt || null, labourHours: f.resolvedAt ? Math.round((1 + rnd() * 6) * 2) / 2 : null, partsCostGbp: f.resolvedAt ? rInt(0, 900) : null, notes: f.shortLabel + ' on ' + f.assetName };
       wo.scheduledFor = f.resolvedAt ? wo.raisedAt + rInt(2, 30) * HOUR : (f.id === 'FLT-2026-00931' ? T(9, 18, 13, 0) : dayStart(T0) + rInt(1, 4) * DAY + rInt(8, 16) * HOUR);
@@ -3514,7 +3586,7 @@ vs. last month</span></span>
   var PPM_TITLES = { AHU: 'Quarterly AHU service', FCU: 'Annual FCU clean & filter', VAV: 'Annual VAV damper check', CHILLER: 'Quarterly chiller service', BOILER: 'Quarterly boiler service', PUMP: '6-monthly pump inspection', LIFT: 'Quarterly lift service', MCC: '6-monthly MCC thermal survey', DB: 'Annual DB inspection', MSB: '6-monthly switchboard inspection', BMS_CTRL: '6-monthly controller check', BMS_SERVER: '6-monthly server patching', FIRE_PANEL: 'Quarterly fire panel test', SENSOR_CO2: 'Annual sensor calibration', SENSOR_TEMP: 'Annual sensor calibration', SENSOR_PRESSURE: 'Annual sensor calibration', METER_ELEC: 'Annual meter verification', METER_GAS: 'Annual meter verification', METER_WATER: 'Annual meter verification', EXTRACT_FAN: '6-monthly fan inspection', VSD: '6-monthly drive inspection', WATER_HEATER: '6-monthly heater service', SPRINKLER_PUMP: 'Quarterly sprinkler pump test', BOOSTER_SET: '6-monthly booster set service', GAS_HEATER: '6-monthly heater service', GENERATOR: 'Quarterly generator load test', UPS: 'Quarterly UPS inspection' };
   (function buildPpm() {
     var d, i, seq = 0, lateSeq = 0;
-    var ppmStart = TODAY - 400 * DAY;
+    var ppmStart = addDays(TODAY, -759);   // covers the previous-year window (the local-day table spans 760 days)
     function push(ds, siteId, state) {
       var pool = siteId === 's1' ? s1Assets : s2Assets, a = pool[(seq * 37 + rInt(0, 7)) % pool.length];
       var due = ds + 9 * HOUR, t = { id: 'PPM-' + String(yearOf(due)).slice(2) + '-' + String(1000 + seq++).padStart(5, '0'), assetId: a.id, assetName: a.name, siteId: a.siteId, areaId: a.areaId, title: PPM_TITLES[a.type], frequency: a.ppmFrequencyDays + ' days', dueDate: due, completedAt: null, status: 'completed', contractor: a.contractor, rescheduledTo: null };
@@ -3528,17 +3600,17 @@ vs. last month</span></span>
     var plan = [];
     plan.push({ ds: TODAY, n: 9, late: 0, over: 0 });
     var wk = [9, 9, 8, 9, 8, 9];
-    for (i = 0; i < 6; i++) plan.push({ ds: TODAY - (6 - i) * DAY, n: wk[i], late: i === 1 || i === 3 || i === 5 ? 1 : 0, over: 0 });
+    for (i = 0; i < 6; i++) plan.push({ ds: addDays(TODAY, -(6 - i)), n: wk[i], late: i === 1 || i === 3 || i === 5 ? 1 : 0, over: 0 });
     var rest = 198, restDays = 23;
-    for (i = 0; i < restDays; i++) { var n = Math.round(rest / (restDays - i)); rest -= n; plan.push({ ds: TODAY - (29 - i) * DAY, n: n, late: (i % 3 === 1 && i < 21) ? 1 : 0, over: (i === 2 || i === 8 || i === 14 || i === 20) ? 1 : 0 }); }
+    for (i = 0; i < restDays; i++) { var n = Math.round(rest / (restDays - i)); rest -= n; plan.push({ ds: addDays(TODAY, -(29 - i)), n: n, late: (i % 3 === 1 && i < 21) ? 1 : 0, over: (i === 2 || i === 8 || i === 14 || i === 20) ? 1 : 0 }); }
     // previous month (30 days before that): 254 tasks, 18 late
     rest = 254; var lateLeft = 18;
-    for (i = 0; i < 30; i++) { var n2 = Math.round(rest / (30 - i)); rest -= n2; var l2 = Math.round(lateLeft / (30 - i)); lateLeft -= l2; plan.push({ ds: TODAY - (59 - i) * DAY, n: n2, late: l2, over: 0 }); }
+    for (i = 0; i < 30; i++) { var n2 = Math.round(rest / (30 - i)); rest -= n2; var l2 = Math.round(lateLeft / (30 - i)); lateLeft -= l2; plan.push({ ds: addDays(TODAY, -(59 - i)), n: n2, late: l2, over: 0 }); }
     // rest of the 12-month window (from the 1st of the month 11 months ago): 2,427 tasks, 166 late → then older days at ~8/day, 7 % late
-    var yearStart = addMonths(monthStart(T0), -11), restDays2 = Math.round((TODAY - 59 * DAY - yearStart) / DAY);
+    var yearStart = addMonths(monthStart(T0), -11), restDays2 = Math.round((addDays(TODAY, -59) - yearStart) / DAY);
     rest = 2427; lateLeft = 166;
-    for (i = 0; i < restDays2; i++) { var n3 = Math.round(rest / (restDays2 - i)); rest -= n3; var l3 = Math.round(lateLeft / (restDays2 - i)); lateLeft -= l3; plan.push({ ds: yearStart + i * DAY, n: n3, late: l3, over: 0 }); }
-    for (d = yearStart - DAY; d >= ppmStart; d -= DAY) plan.push({ ds: d, n: 8 + (rnd() < 0.15 ? 1 : 0), late: rnd() < 0.5 ? 1 : 0, over: 0 });
+    for (i = 0; i < restDays2; i++) { var n3 = Math.round(rest / (restDays2 - i)); rest -= n3; var l3 = Math.round(lateLeft / (restDays2 - i)); lateLeft -= l3; plan.push({ ds: addDays(yearStart, i), n: n3, late: l3, over: 0 }); }
+    for (d = addDays(yearStart, -1); d >= ppmStart; d = addDays(d, -1)) plan.push({ ds: d, n: 8 + (rnd() < 0.15 ? 1 : 0), late: rnd() < 0.5 ? 1 : 0, over: 0 });
     plan.forEach(function (p) {
       var s1n = Math.round(p.n * 0.7), k;
       for (k = 0; k < p.n; k++) {
@@ -3598,7 +3670,7 @@ vs. last month</span></span>
       var rows = [], base, wk, kw;
       if (a.type === 'PUMP') { base = 93; wk = 90; kw = 4; } else if (a.type === 'LIFT') { base = 48; wk = 32; kw = 6; } else if (a.type === 'BOILER' || a.type === 'GAS_HEATER') { base = 32; wk = 18; kw = 90; } else if (a.type === 'GENERATOR') { base = 2; wk = 1; kw = 0; } else { base = 68; wk = 24; kw = a.type === 'CHILLER' ? 180 : (a.type === 'AHU' ? 11 : 3); }
       for (var d = 399; d >= 0; d--) {
-        var ds = TODAY - d * DAY, m = monthOf(ds), seasonal = (a.type === 'CHILLER') ? (m >= 5 && m <= 9 ? 1.1 : 0.55) : (a.type === 'BOILER' || a.type === 'GAS_HEATER') ? (m >= 10 || m <= 3 ? 1.8 : 0.7) : 1;
+        var ds = addDays(TODAY, -d), m = monthOf(ds), seasonal = (a.type === 'CHILLER') ? (m >= 5 && m <= 9 ? 1.1 : 0.55) : (a.type === 'BOILER' || a.type === 'GAS_HEATER') ? (m >= 10 || m <= 3 ? 1.8 : 0.7) : 1;
         var pct = Math.min(100, Math.max(0, Math.round((isWeekend(ds) ? wk : base) * seasonal + rGauss() * 6)));
         var hero = FVR_HERO[a.id], fo = null;
         if (hero && d <= 6) { pct = hero[1][6 - d]; fo = hero[0][6 - d]; }
@@ -3630,7 +3702,6 @@ vs. last month</span></span>
 
   /* ---------- 15. KPI snapshots (health deltas + Month sparklines from SPEC §4.1–4.4) ---------- */
   var SNAPSHOTS = {
-    healthDelta: { month: { all: 4, s1: 3, s2: 5 }, now: { all: -1, s1: -1, s2: 0 }, week: { all: 2, s1: 2, s2: 3 }, year: { all: 7, s1: 6, s2: 8 } },
     monthSpark: { health: [72, 73, 73, 74, 74, 75, 75, 76, 76, 77, 77, 78], mttrHours: [26.1, 25.4, 24.7, 24.9, 23.2, 22.0, 21.4, 20.1, 19.6, 18.4, 17.9, 17.5], ppm: [90.2, 91.0, 90.5, 92.1, 91.8, 93.0, 92.4, 93.6, 94.1, 93.8, 94.4, 94.6] }
   };
 
@@ -3652,6 +3723,7 @@ vs. last month</span></span>
   function normScope(scope) {
     scope = scope || {};
     var s = { siteId: scope.siteId || 'all', areaId: scope.areaId || 'all', range: RANGE_DEFS[scope.range] ? scope.range : 'month' };
+    if (s.siteId !== 'all' && !siteById[s.siteId]) s.siteId = 'all';
     if (s.areaId !== 'all' && !areaById[s.areaId]) s.areaId = 'all';
     return s;
   }
@@ -3665,8 +3737,6 @@ vs. last month</span></span>
   function openAt(s, ts) { return faults.filter(function (f) { return inScope(f, s) && f.detectedAt <= ts && (f.resolvedAt === null || f.resolvedAt > ts); }); }
   function sevCounts(list) { var c = { critical: 0, high: 0, medium: 0, low: 0 }; list.forEach(function (f) { c[f.severity]++; }); return c; }
   function highestSeverity(list) { var best = null; list.forEach(function (f) { if (!best || SEV_RANK[f.severity] > SEV_RANK[best]) best = f.severity; }); return best; }
-  function siteDeltaKey(s) { return s.siteId === 'all' ? 'all' : s.siteId; }
-  function hashStr(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function isDefaultScope(s) { return s.siteId === 'all' && s.areaId === 'all' && s.range === 'month'; }
   function binLabels(range) { return binsFor(range).map(function (b) { return b.label; }); }
   function round1(x) { return Math.round(x * 10) / 10; }
@@ -3753,7 +3823,9 @@ vs. last month</span></span>
       var spark;
       if (isDefaultScope(s)) spark = { values: SNAPSHOTS.monthSpark.mttrHours.slice(), labels: binLabels('month') };
       else spark = sparkFromBins(s.range, s, function (b) { var l = resolvedIn(s, { start: b.start, end: b.end }); return l.length ? round1(mean(l.map(function (f) { return f.durationMinutes; })) / 60) : null; });
-      return { minutes: m, previousMinutes: pm, deltaMinutes: m - pm, compareLabel: RANGE_DEFS[s.range].compareLabel, resolvedCount: cur.length, previousCount: prev.length, spark: spark.values, sparkLabels: spark.labels };
+      // no faults resolved in the previous window → previousMinutes/deltaMinutes are null (the KPI renders "→ No change")
+      var hasPrev = prev.length > 0;
+      return { minutes: m, previousMinutes: hasPrev ? pm : null, deltaMinutes: hasPrev ? m - pm : null, compareLabel: RANGE_DEFS[s.range].compareLabel, resolvedCount: cur.length, previousCount: prev.length, spark: spark.values, sparkLabels: spark.labels };
     });
   }
 
@@ -3769,29 +3841,52 @@ vs. last month</span></span>
       var spark;
       if (isDefaultScope(s)) spark = { values: SNAPSHOTS.monthSpark.ppm.slice(), labels: binLabels('month') };
       else spark = sparkFromBins(s.range, s, function (b) { var st = ppmStats(s, { start: b.end - w.ms, end: b.end }); return st.due ? round1(st.pct) : null; });
-      return { pct: round1(cur.pct), previousPct: round1(prev.pct), deltaPct: round1(cur.pct - prev.pct), compareLabel: RANGE_DEFS[s.range].compareLabel, onTime: cur.onTime, due: cur.due, previousOnTime: prev.onTime, previousDue: prev.due, spark: spark.values, sparkLabels: spark.labels };
+      // no tasks due in the previous window → previousPct/deltaPct are null (the KPI renders "→ No change")
+      return { pct: round1(cur.pct), previousPct: prev.due ? round1(prev.pct) : null, deltaPct: prev.due ? round1(cur.pct - prev.pct) : null, compareLabel: RANGE_DEFS[s.range].compareLabel, onTime: cur.onTime, due: cur.due, previousOnTime: prev.onTime, previousDue: prev.due, spark: spark.values, sparkLabels: spark.labels };
     });
   }
 
   function healthBand(score) { return score >= 90 ? 'Excellent' : score >= 75 ? 'Good' : score >= 60 ? 'Fair' : 'Poor'; }
-  // SPEC §6.9: H = 0.40·F + 0.20·S + 0.15·P + 0.10·Q + 0.15·E ; F = max(0, 100 − (5·Crit + 2·High + 1·Med + 0.5·Low)) over open faults
+  // SPEC §6.9: H = 0.40·F + 0.20·S + 0.15·P + 0.10·Q + 0.15·E ; F = max(0, 100 − (5·Crit + 2·High + 1·Med + 0.5·Low)) over open faults.
+  // The score is a point-in-time KPI: F, Q and E are taken "now" and S / P over a fixed trailing 30 days, whatever the selected range,
+  // so the big number does not jump between Now / Week / Month / Year — only the comparison point (and so the delta) changes.
+  function healthInputs(s, openList, win) {
+    var sev = sevCounts(openList);
+    var F = Math.max(0, 100 - (5 * sev.critical + 2 * sev.high + sev.medium + 0.5 * sev.low));
+    var res = resolvedIn(s, win), within = res.filter(function (f) { return f.withinSla; }).length, S = res.length ? within * 100 / res.length : 0;
+    var P = ppmStats(s, win).pct;
+    var dq = dataQuality(s), Q = dq.totalPoints ? dq[0].count * 100 / dq.totalPoints : 0;
+    var es = equipmentStatus(s), E = es.total ? es.online * 100 / es.total : 0;
+    var rows = [['Open faults (F)', F, 0.40], ['SLA performance', S, 0.20], ['PPM compliance', P, 0.15], ['Data quality', Q, 0.10], ['Equipment online', E, 0.15]];
+    var total = 0, breakdown = rows.map(function (r) { var c = r[1] * r[2]; total += c; return { label: r[0], value: round1(r[1]), weight: r[2], contribution: round1(c) }; });
+    return { breakdown: breakdown, total: total };
+  }
+  function trailing30(ts) { return { start: addDays(dayStart(ts), -29), end: ts }; }
+  // raw composite as it stood at a past instant (open faults at that instant; SLA / PPM over the 30 days before it; Q and E have no history)
+  function healthAt(s, ts) { return healthInputs(s, openAt(s, ts), trailing30(ts)).total; }
+  // The snapshot of the previous score is the composite at the comparison point plus a per-range calibration that pins the
+  // estate's history to SPEC §6.7 (78 ↓ 1 (79) / ↑ 2 (76) / ↑ 4 (74) / ↑ 7 (71)) — computed once from the seed, never from mutated data.
+  var HEALTH_PREV_TARGET = { now: 79, week: 76, month: 74, year: 71 };
+  var healthCal = null;
+  function healthCalibration() {
+    if (healthCal) return healthCal;
+    healthCal = {};
+    var est = { siteId: 'all', areaId: 'all', range: 'month' };
+    Object.keys(HEALTH_PREV_TARGET).forEach(function (r) { healthCal[r] = HEALTH_PREV_TARGET[r] - healthAt(est, windowFor(r, T0).compareAt); });
+    return healthCal;
+  }
   function healthScore(scope) {
     var s = normScope(scope);
     return cached('healthScore', s, function () {
-      var sev = sevCounts(activeIn(s));
-      var F = Math.max(0, 100 - (5 * sev.critical + 2 * sev.high + sev.medium + 0.5 * sev.low));
-      var rp = resolutionPerformance(s), S = rp.withinPctExact;
-      var P = ppmCompliance(s).pct;
-      var dq = dataQuality(s), Q = dq.totalPoints ? dq[0].count * 100 / dq.totalPoints : 0;
-      var es = equipmentStatus(s), E = es.total ? es.online * 100 / es.total : 0;
-      var rows = [['Open faults (F)', F, 0.40], ['SLA performance', S, 0.20], ['PPM compliance', P, 0.15], ['Data quality', Q, 0.10], ['Equipment online', E, 0.15]];
-      var total = 0, breakdown = rows.map(function (r) { var c = r[1] * r[2]; total += c; return { label: r[0], value: round1(r[1]), weight: r[2], contribution: round1(c) }; });
-      var score = Math.round(total);
-      var delta = SNAPSHOTS.healthDelta[s.range][siteDeltaKey(s)];
+      var n = now(), w = windowFor(s.range, n), cal = healthCalibration()[s.range];
+      var cur = healthInputs(s, activeIn(s), trailing30(n));
+      var score = Math.round(cur.total);
+      var previous = Math.round(healthAt(s, w.compareAt) + cal);
+      var delta = score - previous;
       var spark, labels = binLabels(s.range);
       if (isDefaultScope(s)) spark = SNAPSHOTS.monthSpark.health.slice();
-      else { var h = hashStr(s.siteId + s.areaId + s.range), start = score - delta; spark = []; for (var i = 0; i < 12; i++) { var v = start + (score - start) * i / 11 + (((h >> (i * 2)) & 3) - 1.5) * 0.6; spark.push(Math.round(v)); } spark[11] = score; }
-      return { score: score, max: 100, band: healthBand(score), delta: delta, previous: score - delta, compareLabel: RANGE_DEFS[s.range].compareLabel, spark: spark, sparkLabels: labels, breakdown: breakdown, total: round1(total) };
+      else { spark = binsFor(s.range, n).map(function (b) { return Math.round(healthAt(s, Math.min(b.end, n)) + cal); }); spark[11] = score; }
+      return { score: score, max: 100, band: healthBand(score), delta: delta, previous: previous, compareLabel: RANGE_DEFS[s.range].compareLabel, spark: spark, sparkLabels: labels, breakdown: cur.breakdown, total: round1(cur.total) };
     });
   }
 
@@ -3800,19 +3895,19 @@ vs. last month</span></span>
     var r = RANGE_DEFS[range], out = [], i;
     if (range === 'now') { var h0 = hourStart(n) - 23 * HOUR; for (i = 0; i < 24; i++) out.push({ ts: h0 + i * HOUR, end: h0 + (i + 1) * HOUR, shift: DAY }); }
     else if (range === 'year') { var m0 = addMonths(monthStart(n), -11); for (i = 0; i < 12; i++) { var ms = addMonths(m0, i); out.push({ ts: ms, end: addMonths(m0, i + 1), shift: null, prevStart: addMonths(m0, i - 12), prevEnd: addMonths(m0, i - 11) }); } }
-    else { var d0 = dayStart(n) - (r.bucketCount - 1) * DAY; for (i = 0; i < r.bucketCount; i++) out.push({ ts: d0 + i * DAY, end: d0 + (i + 1) * DAY, shift: r.bucketCount * DAY }); }
+    else { var d0 = addDays(dayStart(n), -(r.bucketCount - 1)); for (i = 0; i < r.bucketCount; i++) { var ts = addDays(d0, i); out.push({ ts: ts, end: addDays(ts, 1), shift: null, prevStart: addDays(ts, -r.bucketCount), prevEnd: addDays(ts, 1 - r.bucketCount) }); } }
     return out;
   }
   function faultTrend(scope) {
     var s = normScope(scope);
     return cached('faultTrend', s, function () {
       var n = now(), buckets = trendBuckets(s.range, n), r = RANGE_DEFS[s.range];
-      var lo = buckets[0].prevStart || (buckets[0].ts - buckets[0].shift), hi = n;
+      var lo = buckets[0].prevStart !== undefined && buckets[0].prevStart !== null ? buckets[0].prevStart : (buckets[0].ts - buckets[0].shift), hi = n;
       var evs = events.filter(function (e) { return inScope(e, s) && e.occurredAt >= lo && e.occurredAt <= hi; });
       var points = buckets.map(function (b) {
         var p = { ts: b.ts, label: r.bucket === 'hour' ? fmt.hour(b.ts) : r.bucket === 'month' ? fmt.month(b.ts) : fmt.date(b.ts),
           tooltipLabel: r.bucket === 'hour' ? fmt.date(b.ts) + ' ' + fmt.hour(b.ts) : r.bucket === 'month' ? fmt.monthYear(b.ts) : fmt.weekdayDate(b.ts), critical: 0, high: 0, medium: 0, low: 0, total: 0, prevTotal: 0, end: b.end };
-        var ps = b.prevStart || (b.ts - b.shift), pe = b.prevEnd || (b.end - b.shift);
+        var ps = b.shift === null ? b.prevStart : (b.ts - b.shift), pe = b.shift === null ? b.prevEnd : (b.end - b.shift);
         evs.forEach(function (e) { if (e.occurredAt >= b.ts && e.occurredAt < b.end) { p[e.severity]++; p.total++; } else if (e.occurredAt >= ps && e.occurredAt < pe) p.prevTotal++; });
         return p;
       });
@@ -3841,7 +3936,7 @@ vs. last month</span></span>
     return by;
   }
   function topFaultedAssets(scope, opts) {
-    var s = normScope(scope), limit = (opts && opts.limit) || 5;
+    var s = normScope(scope), limit = opts && typeof opts.limit === 'number' ? opts.limit : 5;
     var rows = cached('topFaulted', s, function () {
       var w = windowFor(s.range), by = assetEventStats(s, w);
       var list = Object.keys(by).map(function (id) { var st = by[id], a = assetById[id]; return { assetId: id, name: a.name, system: a.system, faults: st.events.length, totalMinutes: st.minutes, lastOccurrence: st.lastOccurrence, mainRuleName: st.mainRule ? st.mainRule.name : null, highestOpen: st.highestOpen }; });
@@ -3851,7 +3946,7 @@ vs. last month</span></span>
     var out = rows.slice(0, limit === Infinity ? rows.length : limit); out.total = rows.length; return out;
   }
   function recurringFaults(scope, opts) {
-    var s = normScope(scope), limit = (opts && opts.limit) || 5;
+    var s = normScope(scope), limit = opts && typeof opts.limit === 'number' ? opts.limit : 5;
     var rows = cached('recurring', s, function () {
       var w = windowFor(s.range), by = assetEventStats(s, w), bins = binsFor(s.range), labels = bins.map(function (b) { return b.label; });
       var list = [];
@@ -3907,9 +4002,9 @@ vs. last month</span></span>
         points.push({ ts: ms, label: fmt.month(ms), faults: evs.filter(function (e) { return e.occurredAt >= ms && e.occurredAt < me; }).length, runtimePct: mr.length ? Math.round(mean(mr.map(function (r) { return r.runtimePct; }))) : 0, runtimeHours: round1(sum(mr, function (r) { return r.runtimeHours; })) });
       }
     } else {
-      var days = period === '7d' ? 7 : 30, d0 = dayStart(n) - (days - 1) * DAY;
+      var days = period === '7d' ? 7 : 30, d0 = addDays(dayStart(n), -(days - 1));
       for (i = 0; i < days; i++) {
-        var ds = d0 + i * DAY, rr = rowByDay[ds], cnt = evs.filter(function (e) { return e.occurredAt >= ds && e.occurredAt < ds + DAY; }).length;
+        var ds = addDays(d0, i), de = addDays(ds, 1), rr = rowByDay[ds], cnt = evs.filter(function (e) { return e.occurredAt >= ds && e.occurredAt < de; }).length;
         if (rr && rr.faultsOverride !== null && rr.faultsOverride !== undefined) cnt = rr.faultsOverride;
         points.push({ ts: ds, label: fmt.date(ds), faults: cnt, runtimePct: rr ? rr.runtimePct : 0, runtimeHours: rr ? rr.runtimeHours : 0 });
       }
@@ -3975,6 +4070,7 @@ vs. last month</span></span>
       var g = causeGrowth(s).filter(function (c) { return c.current > c.previous && c.previous > 0; }).sort(function (a, b) { return b.growthPct - a.growthPct || b.current - a.current; })[0];
       if (g) {
         var cat = g.key === 'control' ? 'controls' : null;
+        // CONTRACT-ADDITION: analysis action carries cause:CauseKey (the cause the insight is about); category is null unless the cause maps to one
         out.push({ id: 'ins-cause', severity: g.growthPct >= 75 ? 'high' : 'medium', title: 'Increase in ' + CAUSE_ADJ[g.key] + '-related faults', description: CAUSE_BODY[g.key] + ' faults have increased by ' + g.growthPct + '% ' + r.comparedTo + '.',
           action: { label: 'View Analysis', kind: 'analysis', category: cat, cause: g.key, bannerText: g.current + ' faults this period vs. ' + g.previous + ' last period (↑ ' + g.growthPct + '%)' } });
       }
@@ -3991,7 +4087,7 @@ vs. last month</span></span>
    * ===================================================================== */
   function faultView(f) {
     var n = now(), v = Object.assign({}, f);
-    delete v._out; delete v._bin; delete v._hist; delete v._cohort; delete v._fixedResolved; delete v._min; delete v._max; delete v._dur; delete v._autoClearAt;
+    delete v._out; delete v._bin; delete v._hist; delete v._cohort; delete v._fixedResolved; delete v._min; delete v._max; delete v._dur; delete v._autoClearAt; delete v._pinOpenAt;
     v.siteName = siteById[f.siteId].name; v.areaName = areaById[f.areaId].name; v.assetCriticality = assetById[f.assetId].criticality;
     if (f.status === 'resolved') { v.durationMinutes = f.durationMinutes; v.slaState = f.withinSla ? 'within' : 'breached'; }
     else { v.durationMinutes = Math.max(0, Math.round((n - f.detectedAt) / MIN)); v.withinSla = null; v.slaState = n > f.slaDueAt ? 'breached' : 'due'; v.slaRemainingMinutes = Math.round((f.slaDueAt - n) / MIN); }
@@ -4003,6 +4099,7 @@ vs. last month</span></span>
     var n = now(), w = filter.raisedRange ? windowFor(filter.raisedRange) : null, rw = filter.resolvedRange ? windowFor(filter.resolvedRange) : null;
     var occ = null;
     if (filter.occurredOn !== undefined && filter.occurredOn !== null) {
+      // CONTRACT-ADDITION: filter.bucket:'hour'|'day'|'month' (default 'day') selects the occurredOn window
       var b = filter.bucket || 'day', ts = filter.occurredOn;
       occ = b === 'hour' ? { start: hourStart(ts), end: hourStart(ts) + HOUR } : b === 'month' ? { start: monthStart(ts), end: addMonths(monthStart(ts), 1) } : { start: dayStart(ts), end: dayStart(ts) + DAY };
     }
@@ -4017,6 +4114,7 @@ vs. last month</span></span>
       if (filter.category && f.category !== filter.category) return false;
       if (filter.cause && f.cause !== filter.cause) return false;
       if (filter.assetId && f.assetId !== filter.assetId) return false;
+      // CONTRACT-ADDITION: filter.assetIds:string[] restricts to those assets (Recurring Faults "View all", PPM modal)
       if (filter.assetIds && filter.assetIds.indexOf(f.assetId) < 0) return false;
       if (filter.criticality && assetById[f.assetId].criticality !== filter.criticality) return false;
       if (filter.ageBucket && (!isActive(f) || ageBucketOf(n - f.detectedAt) !== filter.ageBucket)) return false;
@@ -4024,6 +4122,7 @@ vs. last month</span></span>
       if (rw && (f.resolvedAt === null || f.resolvedAt < rw.start || f.resolvedAt > rw.end)) return false;
       if (filter.sla) { var v = faultView(f); if (filter.sla === 'within' && !(f.status === 'resolved' ? f.withinSla : v.slaState !== 'breached')) return false; if (filter.sla === 'outside' && !(f.status === 'resolved' ? !f.withinSla : v.slaState === 'breached')) return false; }
       if (filter.hasWorkOrder && !f.workOrderId) return false;
+      // CONTRACT-ADDITION: filter.notified:boolean keeps only faults that have a notification ("Type: Notified")
       if (filter.notified && !notifications.some(function (x) { return x.target && x.target.id === f.id; })) return false;
       if (occ) { var evs = eventsByFault[f.id] || []; if (!evs.some(function (e) { return e.occurredAt >= occ.start && e.occurredAt < occ.end; })) return false; }
       if (q && !(f.id.toLowerCase().indexOf(q) >= 0 || f.assetName.toLowerCase().indexOf(q) >= 0 || f.ruleName.toLowerCase().indexOf(q) >= 0 || f.ruleCode.toLowerCase().indexOf(q) >= 0 || f.shortLabel.toLowerCase().indexOf(q) >= 0)) return false;
@@ -4075,10 +4174,10 @@ vs. last month</span></span>
     var evs = eventsByAsset[id] || [], m30 = evs.filter(function (e) { return e.occurredAt >= n - 30 * DAY; });
     v.faults30d = m30.length; v.incidents30d = faults.filter(function (f) { return f.assetId === id && f.detectedAt >= n - 30 * DAY; }).length;
     v.downtimeMinutes = Math.round(sum(m30, function (e) { return ((e.clearedAt === null ? n : e.clearedAt) - e.occurredAt) / MIN; }));
-    var w0 = dayStart(n) + DAY - 12 * 7 * DAY, hist = [], labels = [];
-    for (var i = 0; i < 12; i++) { var ws = w0 + i * 7 * DAY, we = ws + 7 * DAY; hist.push(evs.filter(function (e) { return e.occurredAt >= ws && e.occurredAt < we; }).length); labels.push(fmt.date(ws)); }
+    var w0 = addDays(dayStart(n), 1 - 12 * 7), hist = [], labels = [];
+    for (var i = 0; i < 12; i++) { var ws = addDays(w0, i * 7), we = addDays(ws, 7); hist.push(evs.filter(function (e) { return e.occurredAt >= ws && e.occurredAt < we; }).length); labels.push(fmt.date(ws)); }
     v.faultHistory = hist; v.faultHistoryLabels = labels; v.faults12w = sum(hist);
-    var rows = runtimeByAsset[id] || [], today = rows.filter(function (r) { return r.date === dayStart(n); })[0], r30 = rows.filter(function (r) { return r.date >= dayStart(n) - 29 * DAY; });
+    var rows = runtimeByAsset[id] || [], today = rows.filter(function (r) { return r.date === dayStart(n); })[0], d30 = addDays(dayStart(n), -29), r30 = rows.filter(function (r) { return r.date >= d30; });
     v.runtimeToday = today ? Math.round(today.runtimeHours * 60) : null; v.runtime30dPct = r30.length ? Math.round(mean(r30.map(function (r) { return r.runtimePct; }))) : null; v.energy30dKwh = r30.length ? Math.round(sum(r30, function (r) { return r.energyKwh; })) : null;
     if (id === 'AHU-04') { v.runtimeToday = 252; v.runtime30dPct = 68; v.energy30dKwh = 2140; }
     var hp = HERO_POINTS[id];
@@ -4097,6 +4196,7 @@ vs. last month</span></span>
       if (filter.status && a.status !== filter.status) return false;
       if (filter.criticality && a.criticality !== filter.criticality) return false;
       if (filter.system && a.system !== filter.system) return false;
+      // CONTRACT-ADDITION: filter.assetIds:string[] restricts to those assets; filter.hasRuntime:boolean keeps runtime-metered assets only
       if (filter.assetIds && filter.assetIds.indexOf(a.id) < 0) return false;
       if (filter.hasRuntime && !a.hasRuntime) return false;
       return true;
@@ -4162,7 +4262,8 @@ vs. last month</span></span>
   var woCounter = 4142;
   function createWorkOrder(assetId, faultId) {
     var a = assetById[assetId]; if (!a) return null;
-    var f = faultId ? faultById[faultId] : null, id = 'WO-26-' + String(woCounter++).padStart(5, '0'), n = now();
+    var f = faultId ? faultById[faultId] : null, n = now(), id;
+    do { id = 'WO-' + String(yearOf(n)).slice(2) + '-' + String(woCounter++).padStart(5, '0'); } while (woById[id]);   // never overwrite an existing order
     var wo = { id: id, faultId: f ? f.id : null, assetId: a.id, status: 'Raised', priority: f ? 'P' + (5 - SEV_RANK[f.severity]) : 'P3', raisedAt: n, assignedTo: null, contractor: a.contractor, scheduledFor: dayStart(n) + DAY + 9 * HOUR, completedAt: null, labourHours: null, partsCostGbp: null, notes: f ? f.shortLabel + ' on ' + a.name : 'Inspection of ' + a.name };
     workOrders.push(wo); woById[id] = wo;
     if (f) { f.workOrderId = id; if (f.status === 'open') { f.status = 'in_progress'; f.acknowledgedAt = f.acknowledgedAt || n; f.acknowledgedBy = f.acknowledgedBy || 'Adam Ward'; } }
@@ -4206,7 +4307,7 @@ vs. last month</span></span>
       var e = addLiveEvent(f, asset, n, null, sev, null); e._detection = true; e._fixedSev = true;
       var notif = null;
       if (sev === 'critical' || sev === 'high') notif = pushNotification(sev, (sev === 'critical' ? 'Critical fault detected — ' : 'New fault — ') + asset.name + ' ' + rule.shortLabel.toLowerCase(), areaById[asset.areaId].name + ', ' + siteById[asset.siteId].name, { type: 'fault', id: f.id }, asset.siteId);
-      result = { kind: 'fault_opened', fault: faultView(f), asset: assetQuery(asset.id), toast: { title: 'New ' + enums.severities[sev] + ' fault · ' + asset.name, body: rule.name + ' · ' + areaById[asset.areaId].name, severity: sev, action: 'View' }, notification: notif };
+      result = { kind: 'fault_opened', fault: faultView(f), asset: assetQuery(asset.id), toast: { title: 'New ' + enums.severities[sev] + ' fault · ' + asset.name, body: rule.name + ' · ' + areaById[asset.areaId].name, severity: sev }, notification: notif };
     } else if (roll < 0.90) {
       var open = faults.filter(function (f) { return isActive(f) && f.id !== 'FLT-2026-00931'; });
       if (!open.length) return null;
@@ -4222,7 +4323,8 @@ vs. last month</span></span>
       off.status = toStale ? 'stale' : 'offline'; off.lastHeartbeat = n - 15 * MIN;
       dataPoints.forEach(function (p) { if (p.assetId === off.id) { p.quality = toStale ? 'stale' : 'missing'; p.lastUpdate = n - 15 * MIN; } });
       var no = toStale ? null : pushNotification('high', off.name + ' went offline', 'No data received for 15 min · ' + areaById[off.areaId].name, { type: 'asset', id: off.id }, off.siteId);
-      result = { kind: toStale ? 'asset_stale' : 'asset_offline', asset: assetQuery(off.id), toast: { title: off.name + (toStale ? ' data is stale' : ' went offline'), body: 'No data received for 15 min · ' + areaById[off.areaId].name, severity: toStale ? 'medium' : 'high', action: 'View' }, notification: no };
+      // CONTRACT-ADDITION: tick() kind 'asset_stale' (asset status → stale, its points → stale); app.js supplies the toast action
+      result = { kind: toStale ? 'asset_stale' : 'asset_offline', asset: assetQuery(off.id), toast: { title: off.name + (toStale ? ' data is stale' : ' went offline'), body: 'No data received for 15 min · ' + areaById[off.areaId].name, severity: toStale ? 'medium' : 'high' }, notification: no };
     } else {
       var back = assets.filter(function (a) { return a.status !== 'online'; });
       if (!back.length) return null;
@@ -4259,7 +4361,16 @@ vs. last month</span></span>
       if (!rA.length || !rF.length) throw new Error('empty tables');
       assets = rA.map(function (r) { var td = TYPES[r.assetType] || TYPES.SENSOR_TEMP; return Object.assign({}, r, { type: r.assetType, typeLabel: td.label, category: SYSTEM_TO_CATEGORY[r.system] || 'other', status: r.status === 'stale_data' ? 'stale' : r.status, lastHeartbeat: tsOf(r.lastHeartbeatAt), lastPpm: tsOf(r.lastPpmAt), nextPpm: tsOf(r.nextPpmAt), hasRuntime: !!r.hasRuntime, ppmDue: tsOf(r.nextPpmAt) <= now() + 14 * DAY }); });
       var aById = {}; assets.forEach(function (a) { aById[a.id] = a; });
-      faults = rF.map(function (r) { var rule = ruleByCode[r.ruleCode] || rules.filter(function (x) { return x.id === r.ruleId; })[0] || ruleByCode['SNS-OOR']; var a = aById[r.assetId]; var f = Object.assign({}, r, { ruleId: rule.id, ruleCode: rule.code, ruleName: rule.name, shortLabel: rule.shortLabel, assetName: a ? a.name : r.assetId, system: a ? a.system : 'HVAC', detectedAt: tsOf(r.detectedAt), acknowledgedAt: tsOf(r.acknowledgedAt), resolvedAt: tsOf(r.resolvedAt), slaDueAt: tsOf(r.slaDueAt), lastOccurrenceAt: tsOf(r.lastOccurrenceAt) || tsOf(r.detectedAt), status: (r.status === 'closed' || r.status === 'suppressed') ? 'resolved' : r.status, slaHours: SLA_HOURS[r.severity] || 72, occurrences: r.occurrenceCount || 1, durationMinutes: r.durationMin || 0, workOrderId: r.workOrderId || null, energyImpactKwh: r.energyImpactKwh || 0, recommendedAction: r.recommendedAction || rule.recommendedAction, description: r.description || rule.descriptionTemplate.replace('{asset}', a ? a.name : r.assetId) }); if (f.resolvedAt) finalizeResolved(f); return f; });
+      faults = rF.map(function (r) {
+        var rule = ruleByCode[r.ruleCode] || rules.filter(function (x) { return x.id === r.ruleId; })[0] || ruleByCode['SNS-OOR'], a = aById[r.assetId], det = tsOf(r.detectedAt);
+        // site/area/category derive from the asset (as the mock does) so a row without site_id/area_id still matches inScope; SLA due defaults to detected + SLA hours
+        var f = Object.assign({}, r, { ruleId: rule.id, ruleCode: rule.code, ruleName: rule.name, shortLabel: rule.shortLabel, assetName: a ? a.name : r.assetId, system: a ? a.system : 'HVAC',
+          siteId: a ? a.siteId : r.siteId, areaId: a ? a.areaId : r.areaId, category: r.category || (rule.category === 'hvac' && a ? a.category : rule.category), cause: r.cause || rule.defaultCause,
+          detectedAt: det, acknowledgedAt: tsOf(r.acknowledgedAt), resolvedAt: tsOf(r.resolvedAt), slaDueAt: tsOf(r.slaDueAt) || (det + (SLA_HOURS[r.severity] || 72) * HOUR), lastOccurrenceAt: tsOf(r.lastOccurrenceAt) || det,
+          status: (r.status === 'closed' || r.status === 'suppressed') ? 'resolved' : r.status, slaHours: SLA_HOURS[r.severity] || 72, occurrences: r.occurrenceCount || 1, durationMinutes: r.durationMin || 0, workOrderId: r.workOrderId || null,
+          energyImpactKwh: r.energyImpactKwh || 0, recommendedAction: r.recommendedAction || rule.recommendedAction, description: r.description || rule.descriptionTemplate.replace('{asset}', a ? a.name : r.assetId) });
+        if (f.resolvedAt) finalizeResolved(f); return f;
+      });
       events = rE.map(function (r) { return { id: r.id, faultId: r.faultId || null, assetId: r.assetId, siteId: r.siteId || (aById[r.assetId] || {}).siteId, areaId: r.areaId || (aById[r.assetId] || {}).areaId, ruleCode: r.ruleCode || null, occurredAt: tsOf(r.occurredAt), severity: r.severity, clearedAt: tsOf(r.clearedAt), isAutoCleared: !!r.isAutoCleared, _fixedSev: true }; });
       workOrders = rW.map(function (r) { return Object.assign({}, r, { raisedAt: tsOf(r.raisedAt), scheduledFor: tsOf(r.scheduledFor), completedAt: tsOf(r.completedAt) }); });
       ppmTasks = rP.map(function (r) { var a = aById[r.assetId]; return Object.assign({}, r, { assetName: a ? a.name : r.assetId, dueDate: tsOf(r.dueDate), completedAt: tsOf(r.completedAt), rescheduledTo: tsOf(r.rescheduledTo) }); });
@@ -8338,6 +8449,7 @@ vs. last month</span></span>
     const prev = (prevRaw != null && prevRaw !== '' && isFinite(+prevRaw)) ? +prevRaw : null;
     el.dataset.num = String(target);
     if (el._cuRaf) { cancelAnimationFrame(el._cuRaf); el._cuRaf = null; }
+    if (el._cuTimer) { clearTimeout(el._cuTimer); el._cuTimer = null; }
     const from = prev == null ? ((opts && opts.fromZero) ? 0 : target) : prev;
     if (reduced() || from === target || (opts && opts.instant)) { el.textContent = format(target); return; }
     const dur = 600, t0 = performance.now();
@@ -8348,6 +8460,12 @@ vs. last month</span></span>
       el._cuRaf = p < 1 ? requestAnimationFrame(step) : null;
     };
     el._cuRaf = requestAnimationFrame(step);
+    // rAF pauses in hidden tabs/frames: guarantee the final value lands anyway
+    el._cuTimer = setTimeout(function () {
+      el._cuTimer = null;
+      if (el._cuRaf) { cancelAnimationFrame(el._cuRaf); el._cuRaf = null; }
+      el.textContent = format(target);
+    }, dur + 120);
   }
 
   /** KPI delta line (CONTRACT §5 markup). polarity +1 = increase is good, −1 = decrease is good. */
@@ -8369,7 +8487,7 @@ vs. last month</span></span>
     arrow.textContent = d > 0 ? '↑' : (d < 0 ? '↓' : '→');
     value.textContent = d === 0 ? 'No change' : String(o.valueText == null ? Math.abs(d) : o.valueText);
     const compare = o.compareLabel || '';
-    label.textContent = o.wrap ? ((d === 0 ? '' : 'points') + '\n' + compare) : compare;
+    label.textContent = o.wrap ? ((d === 0 ? '' : plural(Math.abs(d), 'point')) + '\n' + compare) : compare;
     if (o.tip) el.setAttribute('data-tip', o.tip); else el.removeAttribute('data-tip');
   }
 
@@ -10029,7 +10147,7 @@ vs. last month</span></span>
     }, 40);
   }
 
-  let liveTimer = null, lastTick = 0, queueWatch = null;
+  let liveTimer = null, lastTick = Date.now(), queueWatch = null; // load counts as a tick: the first live event waits 20–40 s so the page opens on the mock's numbers
   const liveQueue = [];
   function overlayOpen() { return !!(hasUi('isOverlayOpen') && ui('isOverlayOpen')); }
   function scheduleTick(soon) {
