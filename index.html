@@ -3382,6 +3382,14 @@ canvas { display: block; }
 }
 .dash-view[data-dash="iaq"] .iq-within-text { min-width: 0; max-width: 170px; display: flex; flex-direction: column; }
 .dash-view[data-dash="iaq"] .iq-within-title { font-size: 18px; font-weight: 600; line-height: 24px; letter-spacing: -0.01em; color: var(--text-primary); }
+/* Keep "Spaces within target" on one line: ring and title scale with the card (mock proportions — ring ≈ 36% of the
+   card, title sized to the remaining width), so it fits from the 1200 px layout up to wide screens. */
+.dash-view[data-dash="iaq"] .iq-card--within { container-type: inline-size; }
+.dash-view[data-dash="iaq"] .iq-card--within .iq-ring,
+.dash-view[data-dash="iaq"] .iq-card--within .iq-ring-svg { width: clamp(76px, 36cqi, 110px); height: clamp(76px, 36cqi, 110px); }
+.dash-view[data-dash="iaq"] .iq-card--within .iq-ring-value-text { font-size: clamp(22px, 10cqi, 32px); }
+.dash-view[data-dash="iaq"] .iq-card--within .iq-within-text { max-width: none; flex: 1 1 auto; }
+.dash-view[data-dash="iaq"] .iq-card--within .iq-within-title { white-space: nowrap; font-size: clamp(13px, 6cqi, 18px); line-height: 1.33; }
 .dash-view[data-dash="iaq"] .iq-within-sub { font-size: 14px; line-height: 20px; color: var(--text-secondary); margin-top: 3px; }
 .dash-view[data-dash="iaq"] .iq-within-text .delta { margin-top: 12px; font-size: 13px; flex-wrap: wrap; row-gap: 0; max-width: 100%; }
 .dash-view[data-dash="iaq"] .iq-within-text .delta-arrow, .dash-view[data-dash="iaq"] .iq-within-text .delta-value { font-size: 13px; }
@@ -3693,10 +3701,6 @@ canvas { display: block; }
                 <span id="hs-delta" class="delta delta--good delta--wrap"><span class="delta-arrow">↑</span> <span class="delta-value">4</span> <span class="delta-label">points
 vs. last month</span></span>
               </div>
-            </div>
-            <div class="spark-wrap spark-wrap--flush">
-              <svg class="chart-static" viewBox="0 0 300 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0,48 L0,44 L27.3,38 L54.5,38 L81.8,32 L109.1,32 L136.4,26 L163.6,26 L190.9,20 L218.2,20 L245.5,14 L272.7,14 L300,8 L300,48 Z" fill="#E3F0FF"/><polyline points="0,44 27.3,38 54.5,38 81.8,32 109.1,32 136.4,26 163.6,26 190.9,20 218.2,20 245.5,14 272.7,14 300,8" fill="none" stroke="#5B9BEF" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>
-              <canvas id="hs-spark" role="img" aria-label="Health score trend, last 12 periods"></canvas>
             </div>
           </section>
 
@@ -11341,12 +11345,7 @@ vs. last month</span></span>
       bandEl.classList.toggle('is-poor', band === 'Poor');
     }
     renderDelta(byId('hs-delta'), { delta: d.delta, polarity: 1, valueText: String(Math.abs(num(d.delta))), compareLabel: compare, wrap: true });
-    const sparkCanvas = byId('hs-spark');
-    const spark = ensureChart('hsSpark', 'sparkline', sparkCanvas, {
-      values: arr(d.spark), labels: arr(d.sparkLabels), ariaLabel: 'Health score trend, last 12 periods',
-      formatValue: function (v) { return String(Math.round(v)); }
-    });
-    if (spark && !H.created) safeUpdate(spark, arr(d.spark), arr(d.sparkLabels));
+    // No sparkline on this card (removed at the user's request — it collided with the ring); MTTR/PPM keep theirs.
     const breakdown = arr(d.breakdown).slice();
     breakdown.total = d.total; breakdown.score = score; breakdown.band = band; breakdown.max = max;
     H.hsBreakdown = breakdown;
