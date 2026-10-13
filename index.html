@@ -1864,9 +1864,25 @@ canvas { display: block; }
 
 /* §8.2 the header gained the area filter: keep the controls on the page at tablet widths */
 @media (max-width: 1439px) {
-  .controls { gap: 10px; }
-  .range-control { margin-right: 6px; }
-  .range-btn { padding: 0 11px; }
+  .controls { gap: 6px; }
+  .range-control { margin-right: 4px; }
+  .range-btn { padding: 0 9px; }
+  .select--area { min-width: 0; } /* content width ("All Areas") so the title column keeps "… · Updated 10:32" on one line */
+}
+@media (min-width: 1440px) and (max-width: 1599px) {
+  /* IAQ (the only tab whose live toggle is hidden) has the longest subtitle: tighten its controls just enough that
+     "Environmental conditions for healthier, more comfortable spaces." stays on one line at 1440 as before §8.2
+     (with an area chosen, a long area name can still wrap it at 1440 — the header height is unchanged) */
+  .page-header:has(#live-toggle[hidden]) .controls { gap: 6px; }
+  .page-header:has(#live-toggle[hidden]) .range-control { margin-right: 4px; }
+  .page-header:has(#live-toggle[hidden]) .range-btn { padding: 0 14px; }
+  .page-header:has(#live-toggle[hidden]) .select--area { min-width: 0; }
+}
+@media (min-width: 1200px) and (max-width: 1279px) {
+  /* two-column header at its tightest: "+" only (as ≤ 767 px; aria-label and the Widget Library title keep the name) */
+  .btn-add-widget { padding: 0 14px; }
+  .btn-add-widget #add-widget-label { display: none; }
+  .btn-add-widget .btn-plus { font-size: 20px; }
 }
 @media (max-width: 1199px) {
   .controls { flex-wrap: wrap; justify-content: flex-end; row-gap: 10px; }
@@ -1979,6 +1995,8 @@ canvas { display: block; }
   .drawer { width: 100vw; border-radius: 0; }
   .modal { padding: 0; }
   .modal-card, .modal-card--sm, .modal-card--xs { width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; }
+  /* §8.3 "not part of this design" placeholder stays a compact, content-height dialog on phones */
+  .modal-card.modal-card--nid { width: calc(100vw - 32px); height: auto; max-height: calc(100vh - 32px); border-radius: var(--radius-modal); }
   .modal-head, .modal-tools, .modal-body, .modal-foot { padding-left: 16px; padding-right: 16px; }
   .banner { margin-left: 16px; margin-right: 16px; }
   .search { min-width: 0; width: 100%; }
@@ -3146,7 +3164,7 @@ canvas { display: block; }
 .dash-view[data-dash="occupancy"] .card[data-row="3"] { min-height: 314px; }
 .dash-view[data-dash="occupancy"] .card[data-row="4"] { min-height: 300px; }
 .dash-view[data-dash="occupancy"] .card[data-row="5"] { min-height: 290px; }
-.dash-view[data-dash="occupancy"] .card[data-row="6"] { min-height: 300px; }
+.dash-view[data-dash="occupancy"] .card[data-row="6"] { min-height: 350px; } /* = the populated Threshold Breaches card, so its empty state (Now early, 100 %) doesn't move the last row */
 .dash-view[data-dash="occupancy"] .card[data-row="7"] { min-height: 314px; }
 .dash-view[data-dash="occupancy"] .card-head { align-items: flex-start; gap: 6px; }
 .dash-view[data-dash="occupancy"] .card-head > .card-title, .dash-view[data-dash="occupancy"] .card-head-left { padding-top: 6px; }
@@ -3324,8 +3342,13 @@ canvas { display: block; }
   .dash-view[data-dash="occupancy"] .oc-tiles .tile { grid-column: span 2; }
   .dash-view[data-dash="occupancy"] .oc-tiles .tile:nth-child(4), .dash-view[data-dash="occupancy"] .oc-tiles .tile:nth-child(5) { grid-column: span 3; }
 }
-@media (max-width: 599px) {
+@media (max-width: 699px) {
+  /* Threshold Breaches: the title (+ range suffix) gets the full width above its two chips; KPIs go 2 × 2 */
+  .dash-view[data-dash="occupancy"] .oc-breaches-card .card-head { flex-wrap: wrap; row-gap: 8px; }
+  .dash-view[data-dash="occupancy"] .oc-breaches-card .card-head-left { flex: 1 1 100%; }
   .dash-view[data-dash="occupancy"] .oc-breach-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 8px; }
+}
+@media (max-width: 599px) {
   .dash-view[data-dash="occupancy"] .oc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .dash-view[data-dash="occupancy"] .oc-tiles .tile, .dash-view[data-dash="occupancy"] .oc-tiles .tile:nth-child(4) { grid-column: auto; height: auto; min-height: 104px; }
   .dash-view[data-dash="occupancy"] .oc-tiles .tile:nth-child(5) { grid-column: 1 / -1; }
@@ -9832,7 +9855,8 @@ vs. last month</span></span>
   }
   function gateTitle(cfg, isDetail) {
     cfg = cfg || {};
-    var t = cfg.itemTitle || ((isDetail || cfg.detail) ? cfg.title : null) || rowItem || cfg.title;
+    /* a nested LIST's own title is not an item name: item title, else the clicked row's name, else "Not available" */
+    var t = cfg.itemTitle || ((isDetail || cfg.detail) ? cfg.title : null) || rowItem;
     return t ? String(t) : 'Not available';
   }
 
@@ -10632,7 +10656,8 @@ vs. last month</span></span>
       filter: Object.assign({}, opts.filter || {}),
       chips: (Array.isArray(opts.chips) ? opts.chips : []).map(function (c) { return { key: c.key, label: c.label, value: c.value }; }),
       title: opts.title || 'Faults', banner: opts.banner || null, sort: normaliseSort(opts.sort), search: '',
-      postFilter: isFn(opts.postFilter) ? opts.postFilter : null, opts: opts, dds: {}
+      postFilter: isFn(opts.postFilter) ? opts.postFilter : null, opts: opts, dds: {},
+      ddSet: Object.assign({}, opts._ddSet || {}) // §8.3 dropdowns the user set (Back restores their trigger labels)
     };
     if (typeof st.filter.search === 'string') { st.search = st.filter.search; }
     if (typeof opts._search === 'string') st.search = opts._search; // §8.3 Back restores the search text
@@ -10647,12 +10672,14 @@ vs. last month</span></span>
         var key = def[0], label = def[1], options = def[2];
         var dd = makeDropdown({ label: label, ariaLabel: 'Filter by ' + label.toLowerCase(), options: options, value: st.filter[key] || 'all', onChange: function (v) {
           st.chips = st.chips.filter(function (c) { return c.key !== key; });
+          st.ddSet[key] = v !== 'all';
           if (v === 'all') delete st.filter[key];
           else { st.filter[key] = v; st.chips.push({ key: key, label: label, value: key === 'status' ? statusLabel(v) : (options.filter(function (o) { return o.value === v; })[0] || { label: v }).label }); }
           st.table.state.page = 1;
           renderFaultList();
         } });
         st.dds[key] = dd;
+        if (st.ddSet[key] && st.filter[key]) dd.set(st.filter[key]); // §8.3 Back: the trigger matches the restored chip
         filters.appendChild(dd.el);
       });
     }
@@ -10686,7 +10713,7 @@ vs. last month</span></span>
     var entry = {
       kind: 'modal', el: el, opener: opts.opener || null, focusTarget: $('mf-close'),
       render: function () { renderFaultList(true); },
-      reopen: function () { openFaults(Object.assign({}, opts, { filter: st.filter, chips: st.chips, sort: st.table.state.sort, postFilter: st.postFilter, _search: st.search, _page: st.table.state.page, _back: back })); },
+      reopen: function () { openFaults(Object.assign({}, opts, { filter: st.filter, chips: st.chips, sort: st.table.state.sort, postFilter: st.postFilter, _search: st.search, _page: st.table.state.page, _ddSet: st.ddSet, _back: back })); },
       back: back,
       onClose: function () { if (faultList === st) faultList = null; closeDropdown(); }
     };
@@ -10780,7 +10807,7 @@ vs. last month</span></span>
     if (!cfg._notInDesign && gateOverlay(cfg, false)) return notInDesign({ title: gateTitle(cfg, false), opener: cfg.opener }); // §8.3
     var back = cfg._back !== undefined ? cfg._back : replaceModal();
     var card = el.querySelector('.modal-card');
-    if (card) { card.classList.remove('modal-card--sm', 'modal-card--xs'); if (cfg.size) card.classList.add('modal-card--' + cfg.size); }
+    if (card) { card.classList.remove('modal-card--sm', 'modal-card--xs', 'modal-card--nid'); if (cfg.size) card.classList.add('modal-card--' + cfg.size); }
     var titleEl = $('mg-title'), subEl = $('mg-subtitle'), body = $('mg-body'), foot = $('mg-foot');
     if (titleEl) titleEl.textContent = cfg.title || '';
     if (subEl) subEl.textContent = cfg.subtitle || '';
@@ -10805,14 +10832,35 @@ vs. last month</span></span>
     o = o || {};
     var title = o.title != null && String(o.title).trim() ? String(o.title).trim() : 'Not available';
     var bottom = stack.length ? stack[0] : null;
-    var rootOpener = bottom && bottom.opener && bottom.opener.isConnected && !bottom.el.contains(bottom.opener) ? bottom.opener : null;
-    var back = o._back !== undefined ? o._back : replaceModal();
+    /* the dashboard widget that opened the first overlay (its explicit opener, else the element focused when it opened) */
+    var rootOpener = o._root || null;
+    if (!rootOpener && bottom) {
+      [bottom.opener, bottom.prevFocus].some(function (c) {
+        if (c && c.isConnected && !bottom.el.contains(c) && !(c.closest && c.closest('.modal, .drawer, [role="dialog"]'))) { rootOpener = c; return true; }
+        return false;
+      });
+    }
+    /* the clicked row, so Back can put focus back on it in the rebuilt list */
+    var ae0 = doc.activeElement, rowEl = o.opener && o.opener.tagName ? o.opener : (bottom && ae0 && ae0 !== doc.body && bottom.el.contains(ae0) ? (ae0.closest('tr, li') || ae0) : null);
+    var rowSig = rowEl && /^(TR|LI)$/.test(rowEl.tagName) ? { tag: rowEl.tagName, key: rowKeyOf(rowEl), text: String(rowEl.textContent || '').replace(/\s+/g, ' ').trim() } : (o._rowSig || null);
+    var back0 = o._back !== undefined ? o._back : replaceModal();
+    var back = back0 && !o._back ? function () {
+      var r = back0.apply(this, arguments);
+      /* the restored list returns focus to the widget that opened it (its own opener is often null) */
+      var t = topEntry();
+      if (t && rootOpener && !(t.opener && t.opener.isConnected)) t.opener = rootOpener;
+      if (t && rowSig) {
+        try { if (!focusRow(t.el, rowSig)) setTimeout(function () { if (topEntry() === t && t.el.contains(doc.activeElement) && !doc.activeElement.closest('tr, li')) focusRow(t.el, rowSig); }, motionMs(300) + 60); } catch (e) { /* focus stays on the list */ }
+      }
+      return r;
+    } : back0;
     var entry = openGeneric({
       _notInDesign: true, _back: back, title: title, subtitle: '', size: 'xs',
       opener: back ? (rootOpener || o.opener || null) : (o.opener || null),
-      reopen: function (b) { notInDesign({ title: title, opener: o.opener, _back: b }); },
+      reopen: function (b) { notInDesign({ title: title, opener: o.opener, _root: rootOpener, _rowSig: rowSig, _back: b }); },
       build: function (body, foot, ent) {
         ent.notInDesign = true;
+        var nc = ent.el.querySelector('.modal-card'); if (nc) nc.classList.add('modal-card--nid');
         var ic = icon('pageOff');
         ic.style.cssText = 'width:28px;height:28px;display:block;margin:0 auto 12px;color:var(--text-muted)';
         body.appendChild(h('div', { 'class': 'not-in-design', role: 'note', style: { textAlign: 'center', padding: '16px 8px 8px' } },
@@ -10825,6 +10873,19 @@ vs. last month</span></span>
     });
     if (entry) { entry.focusTarget = null; var fb = entry.el.querySelector('[data-nid="' + (back ? 'back' : 'close') + '"]'); if (fb) safeFocus(fb); }
     return entry;
+  }
+  var ROW_KEY_ATTRS = ['data-key', 'data-fault-id', 'data-dv-row', 'data-asset-id', 'data-point-id', 'data-task-id', 'data-id'];
+  function rowKeyOf(el) { for (var i = 0; i < ROW_KEY_ATTRS.length; i++) { var v = el.getAttribute(ROW_KEY_ATTRS[i]); if (v != null && v !== '') return ROW_KEY_ATTRS[i] + '=' + v; } return null; }
+  /* §8.3 Back: focus the row that opened the placeholder in the rebuilt list (same data key, else same text) */
+  function focusRow(root, sig) {
+    var tag = sig.tag.toLowerCase(), cands = root.querySelectorAll(tag + '[tabindex], ' + tag + ' [tabindex]'), hit = null;
+    for (var i = 0; i < cands.length && !hit; i++) {
+      var c = cands[i].tagName === sig.tag ? cands[i] : cands[i].closest(tag);
+      if (!c) continue;
+      var k = rowKeyOf(c);
+      if (sig.key ? k === sig.key : String(c.textContent || '').replace(/\s+/g, ' ').trim() === sig.text) hit = cands[i];
+    }
+    return hit ? !!safeFocus(hit) : false;
   }
   function setGenericHead(title, subtitle) {
     var t = $('mg-title'), s = $('mg-subtitle');
@@ -11421,6 +11482,7 @@ vs. last month</span></span>
   FDD.ui.openModal = openGeneric;
   FDD.ui.openList = openListModal;
   // CONTRACT-ADDITION (CONTRACT-DASHBOARDS §8.3): the "not part of this design" placeholder and the item-pages switch
+  FDD.ui.withRowItem = function (label, fn) { var prev = rowItem; rowItem = label ? String(label).replace(/\s+/g, ' ').trim() || null : null; try { return fn(); } finally { rowItem = prev; } }; // §8.3 kit.table rows → placeholder title
   FDD.ui.notInDesign = notInDesign;           // ({ title, opener }) → entry — Back appears when opened from inside an overlay
   FDD.ui.itemPages = itemPagesOn;             // () → true when FDD_CONFIG.itemPages === true (old item-page behaviour)
 })();
@@ -11795,6 +11857,7 @@ vs. last month</span></span>
       Object.keys(s.areas).forEach(function (k) { if (widgetDef[k] && typeof s.areas[k] === 'string') state.areas[k] = s.areas[k]; });
     }
     if (typeof s.pageArea === 'string' && s.pageArea) state.pageArea = s.pageArea; // §8.2 header area filter (validated in buildAreaMenus)
+    if (typeof s.fvrHome === 'string' && s.fvrHome) state.fvrHome = s.fvrHome; // §8.2 runtime asset to restore at All Areas
     if (s.fvr && typeof s.fvr === 'object') {
       if (typeof s.fvr.assetId === 'string') state.fvr.assetId = s.fvr.assetId;
       if (typeof s.fvr.period === 'string') state.fvr.period = s.fvr.period;
@@ -11811,7 +11874,7 @@ vs. last month</span></span>
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       const copy = {
-        siteId: state.siteId, range: state.range, areas: state.areas, pageArea: state.pageArea, fvr: state.fvr, hiddenWidgets: state.hiddenWidgets,
+        siteId: state.siteId, range: state.range, areas: state.areas, pageArea: state.pageArea, fvr: state.fvr, fvrHome: state.fvrHome || undefined, hiddenWidgets: state.hiddenWidgets,
         live: state.live, sidebarVisible: state.sidebarVisible, theme: state.theme, reduceMotion: state.reduceMotion, tab: state.tab
       };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(copy)); } catch (e) { /* storage unavailable */ }
@@ -13252,6 +13315,7 @@ vs. last month</span></span>
       state.siteId = siteId;
       state.areas = {};
       state.pageArea = 'all'; // §8.2 a site change resets the header area (as the card chips already reset)
+      state.fvrHome = null;
       if (siteSelect) siteSelect.setValue(siteId);
       buildAreaMenus();
       buildRuntimeOptions('reset');
@@ -13287,10 +13351,13 @@ vs. last month</span></span>
       areaId = areaId || 'all';
       if (areaId !== 'all' && !areaOptions().some(function (it) { return it.value === areaId; })) { warn('setPageArea: unknown area ' + areaId); syncAreaSelect(); return; }
       if (areaId === pageArea()) { syncAreaSelect(); return; }
+      /* Faults vs. Runtime: an area may swap in its own default asset; remember the All Areas asset and restore it on the way back */
+      if (pageArea() === 'all' && areaId !== 'all') state.fvrHome = state.fvr.assetId;
       state.pageArea = areaId;
       state.areas = {};
       if (areaId !== 'all') WIDGETS.forEach(function (w) { if (w.area) state.areas[w.id] = areaId; });
       areaSelects.forEach(function (sel, wid) { sel.setValue(state.areas[wid] || 'all'); syncAreaChip(sel); });
+      if (areaId === 'all' && state.fvrHome) { state.fvr.assetId = state.fvrHome; state.fvrHome = null; }
       buildRuntimeOptions('validate');
       syncAreaSelect();
       saveState();
@@ -13302,7 +13369,7 @@ vs. last month</span></span>
     setRuntime: function (o) {
       o = o || {};
       let changed = false;
-      if (o.assetId && o.assetId !== state.fvr.assetId) { state.fvr.assetId = String(o.assetId); changed = true; }
+      if (o.assetId && o.assetId !== state.fvr.assetId) { state.fvr.assetId = String(o.assetId); state.fvrHome = null; changed = true; } // an explicit pick wins over the All Areas memory
       if (o.period && (enums().runtimePeriods || {})[o.period] && o.period !== state.fvr.period) { state.fvr.period = o.period; changed = true; }
       if (changed) {
         if (o.assetId) buildRuntimeOptions('keep');
@@ -13994,6 +14061,15 @@ vs. last month</span></span>
   function sites() { return SITES.map(function (s) { return Object.assign({}, s); }); }
   /** True when the zone belongs to the scope's site (siteId 'all' matches every zone). */
   function inSite(zoneId, siteId) { var z = ZONE_BY_ID[zoneId]; return !!z && (siteId === 'all' || !siteId || z.siteId === siteId); }
+  /** §8.2 one registry-asset count per area for every dashboard that reports "assets" in the header line (FM, Asset
+      Lifecycle): each site's registry total (61,340 / 16,941) apportioned by the register assets located in the area
+      (largest remainder — lifecycle.data.js derives the same table; lifecycle-check asserts they agree). */
+  var AREA_REGISTRY = {
+    'z-l01w': 8179, 'z-l02e': 6543, 'z-l02w': 7361, 'z-l03w': 7361, 'z-l04lpp': 6543, 'z-l06e': 7361, 'z-rest': 4089,
+    'z-gym': 3271, 'z-car': 4907, 'z-boh': 5725,
+    'w-goodsin': 3227, 'w-hall-a': 2824, 'w-hall-b': 2823, 'w-mezz': 2420, 'w-plant': 4034, 'w-yard': 1613
+  };
+  function areaRegistry(zoneId) { return AREA_REGISTRY[zoneId] != null ? AREA_REGISTRY[zoneId] : null; }
   /** "2 Facilities · 78,281 assets" / "1 Facility · 61,340 assets" (same copy as FDD's summary line). */
   function facilitiesLine(siteId, unitCount, unitLabel) {
     var site = siteId && siteId !== 'all' ? siteById(siteId) : null;
@@ -14050,7 +14126,7 @@ vs. last month</span></span>
     lrPct: lrPct, sum: sum, mean: mean, clamp: clamp, round: round, max: max, min: min,
     // estate
     ESTATE: ESTATE, SITES: SITES, ZONES: ZONES, sites: sites, siteById: siteById, siteName: siteName,
-    zones: zones, zone: zone, zoneName: zoneName, inSite: inSite, facilitiesLine: facilitiesLine,
+    zones: zones, zone: zone, zoneName: zoneName, inSite: inSite, facilitiesLine: facilitiesLine, areaRegistry: areaRegistry,
     // passthroughs
     now: now, rangeInfo: rangeInfo, meta: meta, fmt: fmt
   };
@@ -14517,6 +14593,12 @@ vs. last month</span></span>
       });
       thead.appendChild(tr);
     }
+    /* §8.3: the row's first cell names the item for the "not part of this design" placeholder */
+    function rowOpen(row, tr) {
+      const w = FDD.ui && FDD.ui.withRowItem;
+      if (isFn(w)) w(tr.cells && tr.cells[0] ? tr.cells[0].textContent : null, function () { cfg.onRow(row, tr); });
+      else cfg.onRow(row, tr);
+    }
     function renderBody(doFlash) {
       clear(tbody);
       const list = sorted();
@@ -14532,8 +14614,8 @@ vs. last month</span></span>
         if (isFn(cfg.onRow)) {
           tr.classList.add('is-clickable');
           tr.setAttribute('tabindex', '0');
-          tr.addEventListener('click', function (e) { if (e.target.closest('button, a, input, .select')) return; cfg.onRow(row, tr); });
-          tr.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target === tr) { e.preventDefault(); cfg.onRow(row, tr); } });
+          tr.addEventListener('click', function (e) { if (e.target.closest('button, a, input, .select')) return; rowOpen(row, tr); });
+          tr.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target === tr) { e.preventDefault(); rowOpen(row, tr); } });
         }
         const sigParts = [];
         columns.forEach(function (col) {
@@ -18478,19 +18560,11 @@ vs. last month</span></span>
     var site = siteId && siteId !== 'all' ? C.siteById(siteId) : null;
     return site ? '1 Area · ' + fmtInt(site.registryAssets) + ' assets' : '2 Areas · ' + fmtInt(C.ESTATE.registryAssets) + ' assets';
   }
-  /** §8.2 header line count: the site's registry assets apportioned over its areas by the maintenance-demand weights
-      (ZW, largest remainder) so the areas of a site add up to its registry total. null for 'all' / unknown areas. */
-  var AREA_ASSETS = null;
+  /** §8.2 header line count: the shared per-area registry count (common.js areaRegistry — the same number Asset
+      Lifecycle shows), so the areas of a site add up to its registry total. null for unknown areas. */
   function assetCount(scope) {
     var sc = norm(scope);
-    if (!AREA_ASSETS) {
-      AREA_ASSETS = {};
-      ['s1', 's2'].forEach(function (site) {
-        var zs = zonesOfSite(site), al = lrAlloc(C.siteById(site).registryAssets, zs.map(function (z) { return ZW[z.id]; }));
-        zs.forEach(function (z, k) { AREA_ASSETS[z.id] = al[k]; });
-      });
-    }
-    if (sc.areaId !== 'all') return AREA_ASSETS[sc.areaId] != null ? AREA_ASSETS[sc.areaId] : null;
+    if (sc.areaId !== 'all') return C.areaRegistry(sc.areaId);
     var site = sc.siteId !== 'all' ? C.siteById(sc.siteId) : null;
     return site ? site.registryAssets : C.ESTATE.registryAssets;
   }
@@ -19052,7 +19126,7 @@ vs. last month</span></span>
   R.fmReqCategory = function (opts, scope) {
     var d = D().reqCategory(scope);
     H.rc = d; H.rcScope = scope;
-    if (!d.rows.length) { empty('fmReqCategory', 'No open reactive jobs in ' + areaLabel(scope) + '.'); return; }
+    if (!d.rows.length) { empty('fmReqCategory', 'No open engineering-trade reactive jobs in ' + areaLabel(scope) + '.'); return; }
     empty('fmReqCategory', null);
     var rows = d.rows.map(function (r, k) { return { key: r.key, label: r.label, valueText: fmtInt(r.value), fills: [{ pct: Math.max(r.fill, 2), color: CAT_COLORS[k] || '--blue' }] }; });
     if (!H.rcBars) {
@@ -21844,12 +21918,13 @@ vs. last month</span></span>
         var li = h('li', { 'class': 'en-bar', tabindex: '0', 'data-key': r.key, role: 'button' });
         var lab = h('span', { 'class': 'en-bar-label' }), pct = h('span', { 'class': 'en-bar-pct' }), fill = h('span', { 'class': 'en-bar-fill' });
         li.appendChild(lab); li.appendChild(pct); li.appendChild(h('span', { 'class': 'en-bar-track' }, fill));
-        rec = recs[r.key] = { li: li, lab: lab, pct: pct, fill: fill, row: r };
-        li.addEventListener('click', function () { if (o.onClick) o.onClick(rec.row); });
-        li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (o.onClick) o.onClick(rec.row); } });
-        bindTip(li, function () { return o.tooltip ? o.tooltip(rec.row) : null; });
+        rec = recs[r.key] = { li: li, lab: lab, pct: pct, fill: fill, row: r, o: o };
+        /* handlers read the LATEST render's options (its scope), never the first render's closure */
+        li.addEventListener('click', function () { if (rec.o.onClick) rec.o.onClick(rec.row); });
+        li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (rec.o.onClick) rec.o.onClick(rec.row); } });
+        bindTip(li, function () { return rec.o.tooltip ? rec.o.tooltip(rec.row) : null; });
       }
-      rec.row = r;
+      rec.row = r; rec.o = o;
       rec.lab.textContent = r.label;
       rec.pct.textContent = r.pct + '%';
       rec.li.setAttribute('aria-label', r.label + ' ' + r.pct + '%');
@@ -22044,6 +22119,10 @@ vs. last month</span></span>
       var pr = D().profile(sc);
       modal({ title: 'Out-of-hours base load', subtitle: it.title + ' · ' + pr.dayLabel,
         build: function (body, foot) {
+          if (sc.areaId && sc.areaId !== 'all') { // §8.2 the area filter is visible on the drill (static: the insight is about this area)
+            var ac = isFn(ctx.areaChip) ? ctx.areaChip(sc.areaId, 'areaId') : { label: 'Area', value: D().zoneLabel(sc.areaId) };
+            if (ac) body.appendChild(h('div', { 'class': 'chips', style: { marginBottom: '12px' } }, h('span', { 'class': 'chip' }, h('span', { 'class': 'chip-key' }, ac.label + ':'), ' ' + ac.value)));
+          }
           var cv = modalChart(body, 220);
           profileChart(cv, pr, null);
           modalTable(body, [{ key: 'zone', label: 'ZONE' }, { key: 'kw', label: 'OOH DEMAND (kW)', render: function (r) { return num(fmtInt(r.kw)); } },
@@ -22983,6 +23062,7 @@ vs. last month</span></span>
     'z-l04lpp': [['desks', 'Desks', 22], ['rooms', 'Meeting rooms', 32], ['booths', 'Focus booths', 2]],
     'w-mezz': [['desks', 'Desks', 12], ['rooms', 'Meeting rooms', 6]]
   };
+  var GROUP_OF_TYPE = { desk_zone: 'desks', meeting_room: 'rooms', focus_booth: 'booths' }; // space type → GROUPS key (breakout has no sensed spaces)
   var GROUP_BUMP = { desks: [1.0, 1.08, 1.16, 1.1, 0.88, 0.86, 1.02, 1.08, 1.04, 0.98, 0.95], rooms: [0.8, 0.92, 1.02, 1.12, 1.1, 1.08, 1.06, 1.0, 0.96, 0.9, 0.85],
     booths: [0.9, 1.0, 1.05, 1.05, 0.95, 1.0, 1.08, 1.05, 1.0, 0.95, 0.9], breakout: [0.7, 0.75, 0.85, 1.0, 1.42, 1.32, 0.95, 0.9, 0.95, 1.0, 0.9] };
 
@@ -24470,9 +24550,10 @@ vs. last month</span></span>
     scope = normScope(scope);
     var rows = spacesIn('all', zoneId).map(function (s) {
       var t = spaceToday(s), u = s.type === 'restaurant' || s.type === 'gym' ? u12(s.id) : spaceRange(s, scope.range).avg;
-      return { id: s.id, space: s.name, type: s.typeLabel, capacity: s.capacity, util: u, peak: t.peakText };
+      // zoneId / group (not columns): lets an "Area" / "Type" chip filter the list (§8.2 groups mode of Occupancy by Floor / Area)
+      return { id: s.id, space: s.name, type: s.typeLabel, capacity: s.capacity, util: u, peak: t.peakText, zoneId: s.zoneId, group: GROUP_OF_TYPE[s.type] || null };
     });
-    if (zoneId === 'w-goodsin') rows = [{ id: 'w-goodsin', space: 'Goods In (people counter)', type: 'Zone', capacity: 16, util: null, peak: fmtInt(rhu(Math.max.apply(null, Array.prototype.slice.call(model().todayZ['w-goodsin'])))) }];
+    if (zoneId === 'w-goodsin') rows = [{ id: 'w-goodsin', space: 'Goods In (people counter)', type: 'Zone', capacity: 16, util: null, peak: fmtInt(rhu(Math.max.apply(null, Array.prototype.slice.call(model().todayZ['w-goodsin'])))), zoneId: 'w-goodsin', group: null }];
     return { title: ZI[zoneId].name + ' — spaces', rows: rows, sort: { key: 'space', dir: 'asc' }, unit: 'space',
       columns: [col('space', 'Space', 'strong'), col('type', 'Type', 'muted'), col('capacity', 'Capacity', 'num'), col('util', 'Avg utilisation', 'pct', { dir: 'desc' }), col('peak', 'Peak today', 'muted')] };
   };
@@ -24766,6 +24847,14 @@ vs. last month</span></span>
     return { unit: 'month', bars: out, days: total, text: 'last 12 months' };
   }
   function trimNum(v) { var r = r1(v); return r % 1 === 0 ? fmtInt(r) : f1(r); }
+  /** A breach value (people or %) that must READ as above its limit: whole number when that already exceeds the limit,
+      else one decimal (63.1 vs 63; 90.2% vs 90%), else "> limit" (a value within 0.05 of it). */
+  function aboveText(v, lim, unit) {
+    unit = unit || '';
+    if (rhu(v) > lim + 1e-9) return fmtInt(rhu(v)) + unit;
+    if (r1(v) > lim + 1e-9) return f1(v) + unit;
+    return '> ' + trimNum(lim) + unit;
+  }
   function durText(min) { var h = Math.floor(min / 60), m = min % 60; return h ? h + ' h' + (m ? ' ' + m + ' min' : '') : m + ' min'; }
   function breachZones(scope, areaId) { return areaId && areaId !== 'all' ? [ZI[areaId]] : zonesIn(scope.siteId); }
   var qBreaches = memo('breaches', function (scope, areaId, thr) {
@@ -24786,7 +24875,8 @@ vs. last month</span></span>
             o.count++; o.bySite[z.siteId]++; zset[z.id] = 1;
             perZone[z.id] = (perZone[z.id] || 0) + 1; perDay[i] = (perDay[i] || 0) + 1;
             var p = e.peak / z.capacity * 100;
-            if (!o.peak || p > o.peak.pctV) o.peak = { zoneId: z.id, zone: z.name, people: e.peak, peopleText: fmtInt(rhu(e.peak)), cap: z.capacity, pctV: p, pct: pct(e.peak, z.capacity), time: bucketTime(e.peakK), date: cal.days[i].label };
+            if (!o.peak || p > o.peak.pctV) o.peak = { zoneId: z.id, zone: z.name, people: e.peak, peopleText: aboveText(e.peak, thr * z.capacity), cap: z.capacity, pctV: p, pct: pct(e.peak, z.capacity),
+              pctText: aboveText(p, thr * 100, '%'), time: bucketTime(e.peakK), date: cal.days[i].label };
           });
         });
       });
@@ -24799,6 +24889,7 @@ vs. last month</span></span>
     var avgPer = scope.range === 'now' ? (win.hours > 0 ? total / win.hours : 0) : total / win.days;
     var busiest = null;
     if (scope.range === 'now') bars.forEach(function (b, bi) { if (b.count && (!busiest || b.count > busiest.count)) busiest = { label: 'Busiest hour', value: hourRange(7 + bi), count: b.count, index: bi }; });
+    else if (scope.range === 'year') bars.forEach(function (b, bi) { if (b.count && (!busiest || b.count > busiest.count)) busiest = { label: 'Busiest month', value: win.bars[bi].title.replace(/ · .*$/, ''), count: b.count, index: bi }; }); // one bar per month
     else Object.keys(perDay).map(Number).sort(function (x, y) { return x - y; }).forEach(function (i) {
       if (!busiest || perDay[i] > busiest.count) busiest = { label: 'Busiest day', value: WD_SHORT[cal.days[i].wd] + ' ' + cal.days[i].label, count: perDay[i], day: i };
     });
@@ -24846,6 +24937,7 @@ vs. last month</span></span>
             rows.push({ id: z.id + '|' + i + '|' + e.start, zoneId: z.id, day: i, zone: z.name, site: z.siteName,
               start: (multi ? WD_SHORT[cal.days[i].wd] + ' ' + cal.days[i].label + ' · ' : '') + bucketTime(e.start), startSort: -i * 100 + e.start,
               duration: durText(dur) + (e.ongoing ? ' · ongoing' : ''), durationMin: dur, peak: rhu(e.peak), peakV: e.peak, peakTime: bucketTime(e.peakK),
+              peakText: aboveText(e.peak, lim), pctText: aboveText(e.peak / z.capacity * 100, thr * 100, '%'), // shown: never reads as equal to the threshold
               threshold: trimNum(lim) + ' people (' + Math.round(thr * 100) + '%)', thresholdV: lim, pct: e.peak / z.capacity * 100, capacity: z.capacity, ongoing: !!e.ongoing });
           });
         });
@@ -24855,7 +24947,7 @@ vs. last month</span></span>
     return { title: title, rows: rows, sort: { key: 'startSort', dir: multi ? 'desc' : 'asc' }, unit: 'breach', emptyText: 'No breaches in this period.',
       foot: 'Area sensors · 15-min averages above ' + Math.round(thr * 100) + '% of zone capacity · consecutive intervals count as one breach',
       columns: [col('zone', 'Zone', 'strong'), col('site', 'Site', 'muted'), col('start', 'Start', 'muted', { sortKey: 'startSort' }), col('duration', 'Duration', 'muted', { sortKey: 'durationMin', dir: 'desc' }),
-        col('peak', 'Peak', 'num', { sortKey: 'peakV', dir: 'desc' }), col('threshold', 'Threshold', 'muted', { sortKey: 'thresholdV' }), col('pct', '% of capacity', 'pct', { dir: 'desc' })] };
+        col('peakText', 'Peak', 'num', { sortKey: 'peakV', dir: 'desc' }), col('threshold', 'Threshold', 'muted', { sortKey: 'thresholdV' }), col('pctText', '% of capacity', 'pct', { sortKey: 'pct', dir: 'desc' })] };
   };
   drill.breachesToday = function (scope) { return drill.breaches({ siteId: normScope(scope).siteId, range: 'now' }, 'all', breachThr, null); };
 
@@ -25237,13 +25329,30 @@ vs. last month</span></span>
           return { title: r.label, rows: [{ label: 'Average daily peak', value: r.valueText + ' of ' + r.cap + ' (' + r.pct + '%)' }, { label: 'Busiest hour', value: r.busiestHour }, { label: 'Peak in range', value: r.peak.text + ' (' + r.peak.pct + '%) · ' + r.peak.date }],
             foot: 'Area sensors · complete working days, ' + l.d.period };
         },
-        onClick: function (row) { drill('zoneSpaces', S.ctx.scope(), row.data.zoneId); }
+        onClick: function (row) { byAreaDrill(row.data); }
       });
     } else S.h.byArea.update(rows);
     host.classList.toggle('oc-hb--long', rows.some(function (r) { return r.label.length > 11; }));
     var foot = byId('oc-byarea-foot');
     foot.hidden = !d.more;
     byId('oc-byarea-more').textContent = 'View all ' + d.total + ' areas →';
+  }
+
+  /** Row click: the zone's spaces. Under an area (the card's scope) the list carries the "Area" chip, and in groups mode
+      (rows = Desks / Meeting rooms / …) a removable "Type" chip limits it to that row's spaces. */
+  function byAreaDrill(r) {
+    var l = S.last.byArea, sc = l ? l.sc : S.ctx.scope();
+    if (!sc.areaId || sc.areaId === 'all') { drill('zoneSpaces', sc, r.zoneId); return; }
+    var d;
+    try { d = D().drill.zoneSpaces(sc, r.zoneId); } catch (e) { warn('drill zoneSpaces failed', e); return; }
+    var chip = S.ctx.areaChip ? S.ctx.areaChip(r.zoneId, 'zoneId') : { key: 'zoneId', label: 'Area', value: D().areaName(r.zoneId) };
+    var extra = { chips: chip ? [chip] : [], filter: { zoneId: r.zoneId } };
+    if (r.group) {
+      extra.chips.push({ key: 'group', label: 'Type', value: r.label });
+      extra.filter.group = r.group;
+      extra.emptyText = r.label + ' has no individually sensed spaces · it is measured by the area sensor.';
+    }
+    openDrill(d, null, extra);
   }
 
   /* ---------------------------------------------------------------------
@@ -25745,6 +25854,12 @@ vs. last month</span></span>
     if (hasArea) { extra.chips = [{ key: 'zoneId', label: 'Area', value: D().areaName(areaId) }]; extra.filter = { zoneId: areaId }; }
     openDrill(d, opener, extra);
   }
+  /** Live toast "View": today's breaches with the same row behaviour as the card's lists (rows → §8.3 placeholder). */
+  function openBreachesToday(sc) {
+    var d;
+    try { d = D().drill.breachesToday(sc); } catch (e) { warn('drill breachesToday failed', e); return; }
+    openDrill(d, null, { onRow: openBreachRow, rowKey: function (r) { return r.id; }, count: function (rows) { return plural(rows.length, 'breach'); } });
+  }
   function breachSpec(d) {
     var red = col('--sev-critical'), avgCol = col('--text-secondary'), n = d.labels.length;
     var showAvg = !isOff('ocBreaches', 'avg') && d.total > 0, narrowChart = narrow('oc-breaches-chart');
@@ -25753,6 +25868,7 @@ vs. last month</span></span>
       labels: d.labels, tooltipTitles: d.titles, tooltip: 'index', crosshair: false, clickIndex: true,
       ariaLabel: 'Occupancy threshold breaches by ' + d.unit + ', ' + d.period + ': ' + d.total + ' in total above ' + d.thresholdPct + '% of capacity',
       series: [{ key: 'breaches', label: 'Breaches', type: 'bar', data: d.bars.map(function (b) { return b.count; }), color: red,
+        colors: d.bars.map(function (b) { return b.count ? red : 'rgba(0,0,0,0)'; }), // a 0 bar draws nothing (no rounded hairline on the axis)
         barThickness: n <= 12 ? 28 : null, barPercentage: 0.62, categoryPercentage: 0.9, borderRadius: 3, hidden: isOff('ocBreaches', 'breaches') }],
       hlines: showAvg ? [{ value: d.avgBar, color: avgCol, dash: [5, 4], width: 1.5 }] : [],
       axes: { x: { labelEvery: every, labelOffset: n > 12 ? (n - 1) % every : 0 }, y: { min: 0, max: d.axis.max, step: d.axis.step } },
@@ -25766,7 +25882,7 @@ vs. last month</span></span>
         if (l.unit === 'month' && b.days) rows.push({ label: '≈ ' + rate(b.count / b.days) + ' per day', value: '' });
         if (l.estate && b.count) l.sites.forEach(function (s, si) { rows.push({ label: l.siteNames[si], value: String(b.bySite[s] || 0) }); });
         rows.push({ label: 'Zones affected', value: String(b.zones) });
-        if (b.peak) rows.push({ label: 'Peak occupancy', value: b.peak.pct + '% · ' + b.peak.zone + ' ' + b.peak.peopleText + ' / ' + b.peak.cap });
+        if (b.peak) rows.push({ label: 'Peak occupancy', value: (b.peak.pctText || b.peak.pct + '%') + ' · ' + b.peak.zone + ' ' + b.peak.peopleText + ' / ' + b.peak.cap });
         rows.push({ label: 'Threshold', value: l.thresholdPct + '% of capacity' });
         if (!isOff('ocBreaches', 'avg') && l.total) rows.push({ color: avgCol, label: 'Average per ' + l.unit, value: rate(l.avgBar) });
         return { title: l.titles[i], rows: rows, foot: b.count ? 'Area sensors · 15-min averages · click to list' : 'Area sensors · 15-min averages' };
@@ -25807,8 +25923,8 @@ vs. last month</span></span>
     byId('oc-bk-avg-label').textContent = d.avgPerLabel;
     setKpi('avg', rate(d.avgPer), '', null, d.avgPerLabel + ' · ' + d.period);
     var bz = d.busiest;
-    byId('oc-bk-busiest-label').textContent = d.range === 'now' ? 'Busiest hour' : 'Busiest day';
-    setKpi('busiest', bz ? bz.value : '—', bz ? plural(bz.count, 'breach') : '', bz && bz.index != null && d.range !== 'year' ? function (b) { openBreaches(bz.index, b); } : null);
+    byId('oc-bk-busiest-label').textContent = d.range === 'now' ? 'Busiest hour' : d.range === 'year' ? 'Busiest month' : 'Busiest day';
+    setKpi('busiest', bz ? bz.value : '—', bz ? plural(bz.count, 'breach') : '', bz && bz.index != null ? function (b) { openBreaches(bz.index, b); } : null);
     setKpi('zone', d.topZone ? d.topZone.name : '—', d.topZone ? plural(d.topZone.count, 'breach') : '', null);
     legend('ocBreaches', 'oc-breaches-legend', [
       { key: 'breaches', label: 'Breaches', color: '--sev-critical' },
@@ -25881,7 +25997,8 @@ vs. last month</span></span>
         if (!r || !r.toast) return null;
         var t = r.toast, sc = S.ctx ? S.ctx.scope() : { siteId: 'all', range: 'month' };
         var kind = t.drill && t.drill.kind;
-        return { toast: { title: t.title, body: t.body, severity: t.severity || 'info', action: kind ? { label: 'View', onClick: function () { drill(kind, sc); } } : null } };
+        var act = kind === 'breachesToday' ? function () { openBreachesToday(sc); } : function () { drill(kind, sc); };
+        return { toast: { title: t.title, body: t.body, severity: t.severity || 'info', action: kind ? { label: 'View', onClick: act } : null } };
       }
     }
   };
