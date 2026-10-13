@@ -3563,6 +3563,385 @@ canvas { display: block; }
 }
 
 </style>
+  <style>
+/* ---- dash/lifecycle.css ---- */
+/* ==========================================================================
+   Asset Lifecycle dashboard styles (SPEC-lifecycle). Every selector starts with .dash-view[data-dash="lifecycle"]
+   (CONTRACT-DASHBOARDS §1); only what styles.css / dashboards.css do not already provide. Lifecycle tokens are declared
+   on the view (never :root) and redefined for the dark theme under the two FDD dark selectors.
+   ========================================================================== */
+
+/* ---- Tokens (§4.6) ------------------------------------------------------------ */
+.dash-view[data-dash="lifecycle"] {
+  --lc-purple: #A845FC;
+  --lc-navy: #1C2461;
+  --lc-green-light: #7FCE81;
+  --lc-orange: #FF8135;
+  --lc-blue-light: #70ACFC;
+  --lc-ring-rest: #A3DFCB;
+  --lc-ring-rest-fair: #FBE3B3;
+  --lc-ring-rest-poor: #F9C9CD;
+  --lc-outlook-1: #85BAFF;
+  --lc-outlook-2: #4896FE;
+  --lc-insight-orange: #FB8305;
+  --lc-insight-blue: #1677FF;
+  --lc-tile-hover: #EEF0F4;
+  --lc-pill-slate-bg: #E3E7F2;
+  --lc-pill-slate-fg: #5B6478;
+  --lc-pill-b-bg: #E6F6E7;
+  --lc-pill-b-fg: #3FA854;
+  --lc-amber-text: #F08C1A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .dash-view[data-dash="lifecycle"] {
+    --lc-purple: #B566FF; --lc-navy: #9AA8FF; --lc-green-light: #6CBF73; --lc-orange: #FF8F4A; --lc-blue-light: #5B97EE;
+    --lc-ring-rest: rgba(18, 181, 131, 0.28); --lc-ring-rest-fair: rgba(249, 172, 46, 0.28); --lc-ring-rest-poor: rgba(239, 59, 74, 0.28);
+    --lc-outlook-1: #4F7FC4; --lc-outlook-2: #3D82E6; --lc-insight-blue: #3D8BFF; --lc-tile-hover: #262A32;
+    --lc-pill-slate-bg: rgba(148, 157, 172, 0.18); --lc-pill-slate-fg: #B6BDCB; --lc-pill-b-bg: rgba(127, 206, 129, 0.18); --lc-pill-b-fg: #8FD991; --lc-amber-text: #F7A23B;
+  }
+}
+:root[data-theme="dark"] .dash-view[data-dash="lifecycle"] {
+  --lc-purple: #B566FF; --lc-navy: #9AA8FF; --lc-green-light: #6CBF73; --lc-orange: #FF8F4A; --lc-blue-light: #5B97EE;
+  --lc-ring-rest: rgba(18, 181, 131, 0.28); --lc-ring-rest-fair: rgba(249, 172, 46, 0.28); --lc-ring-rest-poor: rgba(239, 59, 74, 0.28);
+  --lc-outlook-1: #4F7FC4; --lc-outlook-2: #3D82E6; --lc-insight-blue: #3D8BFF; --lc-tile-hover: #262A32;
+  --lc-pill-slate-bg: rgba(148, 157, 172, 0.18); --lc-pill-slate-fg: #B6BDCB; --lc-pill-b-bg: rgba(127, 206, 129, 0.18); --lc-pill-b-fg: #8FD991; --lc-amber-text: #F7A23B;
+}
+
+/* ---- Grid, stack and card parts ------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .dash-grid > .lc-stack { grid-column: span var(--span, 4); display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-stack[hidden] { display: none; }
+.dash-view[data-dash="lifecycle"] .lc-stack > .card { flex: none; grid-column: auto; }
+.dash-view[data-dash="lifecycle"] .lc-stack > .lc-card--systems { flex: 1 1 auto; }
+.dash-view[data-dash="lifecycle"] .lc-stack.is-single > .card:not([hidden]) { flex: 1 1 auto; }
+.dash-view[data-dash="lifecycle"] .lc-card { padding: 12px 16px 14px; }
+.dash-view[data-dash="lifecycle"] .lc-card .card-head { min-height: 34px; align-items: center; }
+.dash-view[data-dash="lifecycle"] .lc-card .card-title { font-size: 16px; line-height: 22px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-view[data-dash="lifecycle"] .lc-card .card-sub { font-size: 13px; line-height: 18px; margin-top: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-card .card-head .select { flex: none; }
+.dash-view[data-dash="lifecycle"] .lc-card .card-head .select--chip .select-btn {
+  height: 28px; min-width: 0; padding: 0 8px 0 10px; gap: 10px; font-size: 12px;
+  border-color: var(--border-card); background: var(--bg-card); color: var(--text-muted);
+}
+.dash-view[data-dash="lifecycle"] .lc-card .card-head .select--chip .select-btn:hover { border-color: var(--border-control); color: var(--text-secondary); }
+.dash-view[data-dash="lifecycle"] .lc-card .card-head .select--chip.is-open .select-btn { border-color: var(--border-control-active); }
+.dash-view[data-dash="lifecycle"] .lc-card .card-head .select--chip.is-filtered .select-btn { border-color: var(--text-primary); color: var(--text-primary); }
+.dash-view[data-dash="lifecycle"] .lc-card .card-head .select--chip .select-label { max-width: 130px; }
+.dash-view[data-dash="lifecycle"] .lc-card .card-body { min-height: 0; }
+.dash-view[data-dash="lifecycle"] .lc-card .empty-state { flex: 1; }
+.dash-view[data-dash="lifecycle"] .lc-good { color: var(--green); }
+.dash-view[data-dash="lifecycle"] .lc-bad { color: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-warn { color: var(--amber); }
+.dash-view[data-dash="lifecycle"] .lc-flat, .dash-view[data-dash="lifecycle"] .lc-muted { color: var(--text-muted); }
+.dash-view[data-dash="lifecycle"] .lc-shake { animation: lc-shake 150ms ease-in-out; }
+@keyframes lc-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+/* Desktop heights (mock h × 1.261, §2) */
+@media (min-width: 1200px) {
+  .dash-view[data-dash="lifecycle"] .lc-card--health, .dash-view[data-dash="lifecycle"] .lc-card--summary { height: 169px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--capex { height: 397px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--condition { height: 155px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--systems { min-height: 0; padding-top: 10px; padding-bottom: 8px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--systems .card-head { min-height: 30px; }
+  .dash-view[data-dash="lifecycle"] .lc-stack { height: 397px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--outlook, .dash-view[data-dash="lifecycle"] .lc-card--warranty, .dash-view[data-dash="lifecycle"] .lc-card--floors { height: 282px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--due, .dash-view[data-dash="lifecycle"] .lc-card--risk, .dash-view[data-dash="lifecycle"] .lc-card--wstatus { height: 334px; }
+  .dash-view[data-dash="lifecycle"] .lc-card--insights { min-height: 261px; }
+}
+
+/* ---- 3.1 Asset Health Index -------------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-card--health { cursor: pointer; }
+.dash-view[data-dash="lifecycle"] .lc-card--health:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
+.dash-view[data-dash="lifecycle"] .lc-health { flex: 1; display: flex; align-items: center; gap: 18px; padding-left: 6px; min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-ring { position: relative; width: 112px; height: 112px; flex: none; }
+.dash-view[data-dash="lifecycle"] .lc-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.dash-view[data-dash="lifecycle"] .lc-ring circle { fill: none; stroke-width: 14; }
+.dash-view[data-dash="lifecycle"] .lc-ring-rest { stroke: var(--lc-ring-rest); }
+.dash-view[data-dash="lifecycle"] .lc-ring-arc { stroke: var(--green); stroke-linecap: butt; transition: stroke-dashoffset 600ms ease-out; }
+.dash-view[data-dash="lifecycle"] .lc-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+.dash-view[data-dash="lifecycle"] .lc-ring-value { font-size: 30px; font-weight: 700; line-height: 32px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.dash-view[data-dash="lifecycle"] .lc-ring-max { font-size: 14px; line-height: 18px; color: var(--text-muted); margin-top: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-health-text { min-width: 0; align-self: center; margin-top: -10px; }
+.dash-view[data-dash="lifecycle"] .lc-health-band { font-size: 18px; font-weight: 600; line-height: 24px; }
+.dash-view[data-dash="lifecycle"] .lc-health-delta { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; font-size: 14px; font-weight: 600; line-height: 18px; white-space: nowrap; }
+.dash-view[data-dash="lifecycle"] .lc-health-delta .lc-arrow { font-size: 15px; font-weight: 700; }
+.dash-view[data-dash="lifecycle"] .lc-health-delta.is-bad { color: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-health-delta.is-good { color: var(--green); }
+.dash-view[data-dash="lifecycle"] .lc-health-delta.is-flat { color: var(--text-muted); }
+.dash-view[data-dash="lifecycle"] .lc-health-caption { font-size: 13px; line-height: 18px; color: var(--text-muted); padding-left: 21px; white-space: nowrap; }
+
+/* ---- 3.2 Lifecycle summary tiles ----------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-tiles { flex: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.dash-view[data-dash="lifecycle"] .lc-tile {
+  display: flex; flex-direction: column; min-width: 0; min-height: 104px;
+  padding: 10px 8px 10px 12px; background: var(--panel-bg); border-radius: 6px; cursor: pointer; transition: background-color 150ms;
+}
+.dash-view[data-dash="lifecycle"] .lc-tile:hover { background: var(--lc-tile-hover); }
+.dash-view[data-dash="lifecycle"] .lc-tile:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
+.dash-view[data-dash="lifecycle"] .lc-tile-label { font-size: 11.5px; line-height: 15px; height: 30px; color: var(--text-secondary); overflow: hidden; letter-spacing: -0.005em; }
+.dash-view[data-dash="lifecycle"] .lc-tile[data-tile="expiring"] .lc-tile-label { padding-right: 12%; }
+.dash-view[data-dash="lifecycle"] .lc-tile-value { font-size: 28px; font-weight: 700; line-height: 34px; margin-top: 2px; color: var(--text-primary); white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.dash-view[data-dash="lifecycle"] .lc-tile-value.lc-bad { color: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-tile-value .lc-tile-rest { font-weight: 400; }
+.dash-view[data-dash="lifecycle"] .lc-tile-sub { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; }
+.dash-view[data-dash="lifecycle"] .lc-tile-sub .lc-arrow { font-size: 15px; font-weight: 700; line-height: 1; }
+.dash-view[data-dash="lifecycle"] .lc-tile-sub .lc-arrow + span { font-weight: 500; }
+.dash-view[data-dash="lifecycle"] .lc-bang { position: relative; display: inline-block; width: 2px; height: 11px; margin: 0 4px 0 3px; }
+.dash-view[data-dash="lifecycle"] .lc-bang::before { content: ''; position: absolute; left: 0; top: 0; width: 2px; height: 8px; border-radius: 1px; background: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-bang::after { content: ''; position: absolute; left: 0; bottom: 0; width: 2px; height: 2px; border-radius: 1px; background: var(--sev-critical); }
+
+/* ---- 3.3 CAPEX chart ------------------------------------------------------------------ */
+.dash-view[data-dash="lifecycle"] .lc-card--capex .card-body { padding-top: 6px; }
+.dash-view[data-dash="lifecycle"] .lc-capex-plot { position: relative; flex: 1; min-height: 0; display: flex; }
+.dash-view[data-dash="lifecycle"] .lc-capex-chart { flex: 1; height: auto; min-height: 220px; }
+.dash-view[data-dash="lifecycle"] .lc-capex-empty {
+  position: absolute; left: 70px; right: 70px; top: 30%; text-align: center; pointer-events: none;
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent); border-radius: 8px; padding: 10px 12px;
+}
+.dash-view[data-dash="lifecycle"] .lc-capex-empty-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.dash-view[data-dash="lifecycle"] .lc-capex-empty-sub { font-size: 13px; color: var(--text-muted); margin: 4px 0 0; }
+.dash-view[data-dash="lifecycle"] .lc-legend { margin: 6px 0 0; }
+.dash-view[data-dash="lifecycle"] .lc-legend .legend--inline { gap: 2px 24px; }
+.dash-view[data-dash="lifecycle"] .lc-legend .legend--inline .legend-item { height: 22px; font-size: 13px; }
+.dash-view[data-dash="lifecycle"] .lc-legend .legend--inline .legend-label { color: var(--text-secondary); }
+.dash-view[data-dash="lifecycle"] .lc-legend .legend-swatch--square { width: 12px; height: 12px; border-radius: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-legend .legend-swatch--line { width: 18px; }
+.dash-view[data-dash="lifecycle"] .lc-legend .legend-swatch--line::before { content: ''; position: absolute; left: 6px; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--c); z-index: 1; }
+
+/* ---- hbar widgets (Condition, Systems, Risk) -------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-bars { min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-bars .hb-label { font-size: 13px; color: var(--text-primary); }
+.dash-view[data-dash="lifecycle"] .lc-bars--condition { --hb-label: 34%; --hb-row: 24px; --hb-h: 10px; --hb-radius: 3px; --hb-pct: 40px; margin-top: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-bars--condition .hb-pct { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.dash-view[data-dash="lifecycle"] .lc-bars--systems { --hb-label: 34%; --hb-row: 24px; --hb-h: 12px; --hb-radius: 3px; --hb-value: 52px; margin-top: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-bars--systems .hb-value { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.dash-view[data-dash="lifecycle"] .lc-bars--systems .hb-row.lc-zero .hb-label { color: var(--text-muted); }
+.dash-view[data-dash="lifecycle"] .card[data-widget="lcRisk"] .card-title { font-size: 14.5px; letter-spacing: -0.02em; }
+.dash-view[data-dash="lifecycle"] .card[data-widget="lcRisk"] .card-head { gap: 6px; }
+.dash-view[data-dash="lifecycle"] .card[data-widget="lcRisk"] .card-head .select--chip .select-btn { padding: 0 5px 0 7px; gap: 5px; font-size: 11px; }
+.dash-view[data-dash="lifecycle"] .lc-risk-head {
+  display: grid; grid-template-columns: 42% minmax(0, 1fr) auto; column-gap: 8px; align-items: center;
+  height: 26px; padding: 0 8px; margin: 2px 0 2px; border-radius: 6px; background: var(--table-header-bg);
+  font-size: 9px; font-weight: 500; letter-spacing: 0; text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+}
+.dash-view[data-dash="lifecycle"] .lc-risk-head span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; }
+.dash-view[data-dash="lifecycle"] .lc-risk-head span:nth-child(3) { text-align: right; }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk { --hb-row: 23px; --hb-h: 10px; --hb-radius: 3px; }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-row { grid-template-columns: 42% 22px minmax(0, 1fr); column-gap: 10px; }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-label { order: 0; font-size: 11.5px; font-weight: 600; letter-spacing: -0.01em; }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-nums { order: 1; justify-content: flex-end; }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-track { order: 2; }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-meta { min-width: 0; font-size: 12px; color: var(--text-secondary); }
+.dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-value, .dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-pct { display: none; }
+
+/* ---- 3.6 Outlook ------------------------------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-outlook { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; min-height: 0; padding-top: 4px; }
+.dash-view[data-dash="lifecycle"] .lc-ol { display: flex; flex-direction: column; min-width: 0; cursor: pointer; border-radius: 6px; }
+.dash-view[data-dash="lifecycle"] .lc-ol:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
+.dash-view[data-dash="lifecycle"] .lc-ol-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; background: var(--panel-bg); border-radius: 6px; padding: 10px 6px 0; transition: background-color 150ms; }
+.dash-view[data-dash="lifecycle"] .lc-ol:hover .lc-ol-panel { background: var(--lc-tile-hover); }
+.dash-view[data-dash="lifecycle"] .lc-ol-head { font-size: 10.5px; letter-spacing: -0.02em; line-height: 16px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-view[data-dash="lifecycle"] .lc-ol-head strong { font-weight: 600; color: var(--text-primary); }
+.dash-view[data-dash="lifecycle"] .lc-ol-figs { display: flex; justify-content: space-between; gap: 2px; margin-top: 16px; }
+.dash-view[data-dash="lifecycle"] .lc-ol-fig { display: flex; flex-direction: column; min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-ol-fig + .lc-ol-fig { align-items: flex-end; text-align: right; }
+.dash-view[data-dash="lifecycle"] .lc-ol-num { font-size: 17px; font-weight: 700; line-height: 26px; color: var(--text-primary); white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.dash-view[data-dash="lifecycle"] .lc-ol-cap { font-size: 9px; letter-spacing: -0.01em; line-height: 14px; color: var(--text-muted); white-space: nowrap; }
+.dash-view[data-dash="lifecycle"] .lc-ol-barwrap { flex: 1; display: flex; align-items: flex-end; justify-content: center; min-height: 10px; }
+.dash-view[data-dash="lifecycle"] .lc-ol-bar { display: block; width: 78%; border-radius: 2px 2px 0 0; transition: height 400ms ease; }
+.dash-view[data-dash="lifecycle"] .lc-ol-share { font-size: 12px; line-height: 16px; color: var(--text-muted); text-align: center; margin-top: 10px; white-space: nowrap; }
+
+/* ---- Lifecycle tables (§3.0, D-25) --------------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-table-wrap { position: relative; flex: 1; min-height: 0; overflow: auto; margin-top: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-table-wrap::after {
+  content: ''; position: sticky; display: block; left: 0; right: 0; bottom: 0; height: 12px; margin-top: -12px;
+  background: linear-gradient(transparent, var(--bg-card)); pointer-events: none; opacity: 0; transition: opacity 150ms;
+}
+.dash-view[data-dash="lifecycle"] .lc-table-wrap.has-more::after { opacity: 1; }
+.dash-view[data-dash="lifecycle"] .lc-table thead th {
+  position: sticky; top: 0; z-index: 1; height: 28px; padding: 0 5px; font-size: 9.5px; font-weight: 500; letter-spacing: 0.2px;
+}
+.dash-view[data-dash="lifecycle"] .lc-table .sort-caret { position: static; margin: -1px 0 0 4px; vertical-align: middle; border-left-width: 3px; border-right-width: 3px; border-bottom-width: 5px; }
+.dash-view[data-dash="lifecycle"] .lc-table thead th.is-sorted.desc .sort-caret { border-top-width: 5px; }
+.dash-view[data-dash="lifecycle"] .lc-table thead th:not(.is-sorted) .sort-caret { display: none; }
+.dash-view[data-dash="lifecycle"] .lc-table--due thead th { font-size: 9px; letter-spacing: 0.1px; }
+.dash-view[data-dash="lifecycle"] .lc-table tbody td { height: 32px; padding: 0 5px; font-size: 11.5px; color: var(--text-secondary); }
+.dash-view[data-dash="lifecycle"] .lc-table tbody td:first-child { font-weight: 600; color: var(--text-primary); }
+.dash-view[data-dash="lifecycle"] .lc-table .cell-center { text-align: center; }
+.dash-view[data-dash="lifecycle"] .lc-table .cell-right { text-align: right; }
+.dash-view[data-dash="lifecycle"] .lc-table .lc-c-red { color: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-link { font: inherit; font-weight: 600; color: var(--text-primary); background: none; border: 0; padding: 0; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-view[data-dash="lifecycle"] .lc-link:hover { text-decoration: underline; }
+.dash-view[data-dash="lifecycle"] .lc-link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-radius: 2px; }
+.dash-view[data-dash="lifecycle"] .lc-table--warranty { table-layout: auto; }
+.dash-view[data-dash="lifecycle"] .lc-table--warranty tbody td { height: 31px; padding: 0 4px; }
+.dash-view[data-dash="lifecycle"] .lc-table--warranty thead th { padding: 0 4px; font-size: 9px; letter-spacing: 0; }
+.dash-view[data-dash="lifecycle"] .lc-table--warranty tbody td:first-child, .dash-view[data-dash="lifecycle"] .lc-table--warranty thead th:first-child { padding-left: 5px; }
+.dash-view[data-dash="lifecycle"] .lc-table--warranty tbody td:last-child, .dash-view[data-dash="lifecycle"] .lc-table--warranty thead th:last-child { padding-right: 0; }
+.dash-view[data-dash="lifecycle"] .lc-table--warranty .sort-caret { margin-left: 3px; }
+.dash-view[data-dash="lifecycle"] .lc-card--warranty, .dash-view[data-dash="lifecycle"] .lc-card--risk { padding-left: 13px; padding-right: 13px; }
+.dash-view[data-dash="lifecycle"] .lc-card--outlook { padding-left: 11px; padding-right: 11px; }
+.dash-view[data-dash="lifecycle"] .lc-table thead th.is-sorted { color: var(--text-muted); }
+.dash-view[data-dash="lifecycle"] .lc-action { min-width: 50px; height: 20px; padding: 0 7px; font-size: 11px; font-weight: 500; }
+.dash-view[data-dash="lifecycle"] .lc-table--floors tbody td { height: 33px; }
+.dash-view[data-dash="lifecycle"] .lc-table--floors td.lc-c-floor { font-weight: 700; }
+.dash-view[data-dash="lifecycle"] .lc-table--floors th.lc-th-wrap { white-space: normal; line-height: 11px; text-overflow: clip; }
+.dash-view[data-dash="lifecycle"] .lc-avg { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-avg-track { flex: 0 0 66%; height: 12px; border-radius: 3px; background: var(--bar-track); overflow: hidden; }
+.dash-view[data-dash="lifecycle"] .lc-avg-fill { display: block; height: 100%; border-radius: 3px; transition: width 400ms ease; }
+.dash-view[data-dash="lifecycle"] .lc-avg-val { font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.dash-view[data-dash="lifecycle"] .lc-table--due tbody td { height: 30px; }
+/* below the 1,440 px design width the dense tables keep their columns and scroll inside the card instead of truncating */
+.dash-view[data-dash="lifecycle"] .lc-table--due { min-width: 620px; }
+.dash-view[data-dash="lifecycle"] .lc-rem { color: var(--text-secondary); }
+.dash-view[data-dash="lifecycle"] .lc-rem--d { color: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-rem--c { color: var(--amber); }
+.dash-view[data-dash="lifecycle"] .lc-pill-b { background: var(--lc-pill-b-bg); color: var(--lc-pill-b-fg); }
+
+/* ---- 3.11 Warranty Status donut ------------------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-donut { display: flex; justify-content: center; padding-top: 4px; }
+.dash-view[data-dash="lifecycle"] .lc-donut-box { position: relative; width: 150px; height: 150px; }
+.dash-view[data-dash="lifecycle"] .lc-donut-box canvas { display: block; width: 100%; height: 100%; }
+.dash-view[data-dash="lifecycle"] .lc-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.dash-view[data-dash="lifecycle"] .lc-donut-value { font-size: 26px; font-weight: 700; line-height: 30px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.dash-view[data-dash="lifecycle"] .lc-donut-cap { font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.dash-view[data-dash="lifecycle"] .lc-donut-legend { list-style: none; margin: 10px 0 0; padding: 0; }
+.dash-view[data-dash="lifecycle"] .lc-dl-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) 36px 40px; column-gap: 10px; align-items: center; height: 21px; padding: 0 6px; margin: 0 -6px; border-radius: 4px; cursor: pointer; }
+.dash-view[data-dash="lifecycle"] .lc-dl-row:hover, .dash-view[data-dash="lifecycle"] .lc-dl-row.is-active { background: var(--hover-row-bar); }
+.dash-view[data-dash="lifecycle"] .lc-dl-row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-ring); }
+.dash-view[data-dash="lifecycle"] .lc-dl-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dash-view[data-dash="lifecycle"] .lc-dl-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-view[data-dash="lifecycle"] .lc-dl-count { font-size: 12px; font-weight: 600; color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums; }
+.dash-view[data-dash="lifecycle"] .lc-dl-pct { font-size: 12px; color: var(--text-secondary); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---- 3.12 Insights -------------------------------------------------------------------------- */
+.dash-view[data-dash="lifecycle"] .lc-insights { flex: 1; min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-ins { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.dash-view[data-dash="lifecycle"] .lc-ins-row {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) 150px 160px; column-gap: 14px; align-items: center;
+  height: 50px; padding: 0 16px 0 10px; border: 1px solid var(--border-card); border-radius: 6px; cursor: pointer; transition: background-color 150ms;
+}
+.dash-view[data-dash="lifecycle"] .lc-ins-row:hover { background: var(--hover-row); }
+.dash-view[data-dash="lifecycle"] .lc-ins-row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-ring); }
+.dash-view[data-dash="lifecycle"] .lc-ins-rank { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #FFFFFF; background: var(--sev-critical); }
+.dash-view[data-dash="lifecycle"] .lc-ins-row--warranty .lc-ins-rank { background: var(--lc-insight-orange); }
+.dash-view[data-dash="lifecycle"] .lc-ins-row--hotspot .lc-ins-rank { background: var(--lc-insight-blue); }
+.dash-view[data-dash="lifecycle"] .lc-ins-row--cwarranty .lc-ins-rank { background: var(--green); }
+.dash-view[data-dash="lifecycle"] .lc-ins-body { min-width: 0; }
+.dash-view[data-dash="lifecycle"] .lc-ins-title { font-size: 13px; font-weight: 600; line-height: 18px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-view[data-dash="lifecycle"] .lc-ins-desc { font-size: 12px; line-height: 16px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-view[data-dash="lifecycle"] .lc-ins-tag { display: flex; justify-content: center; }
+.dash-view[data-dash="lifecycle"] .lc-ins-tag .pill { width: 132px; height: 28px; border-radius: 14px; font-size: 13px; font-weight: 400; }
+.dash-view[data-dash="lifecycle"] .lc-pill-slate { background: var(--lc-pill-slate-bg); color: var(--lc-pill-slate-fg); }
+.dash-view[data-dash="lifecycle"] .lc-ins-btn { width: 150px; height: 34px; justify-self: end; justify-content: center; gap: 14px; font-size: 13px; font-weight: 500; }
+.dash-view[data-dash="lifecycle"] .lc-ins-arrow { width: 14px; height: 14px; stroke-width: 2; }
+
+/* 1,200–1,439 px: still the desktop layout, but the content column is narrower than the 1,324 px design column.
+   Text and fixed boxes scale with the column ((viewport − 116 px) / 1,324) so every widget keeps its 1,440 px fit. */
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .dash-view[data-dash="lifecycle"] .lc-card .card-title { font-size: calc((100vw - 116px) * 0.012085); }
+  .dash-view[data-dash="lifecycle"] .card[data-widget="lcRisk"] .card-title { font-size: calc((100vw - 116px) * 0.010952); }
+  .dash-view[data-dash="lifecycle"] .lc-card .card-sub { font-size: calc((100vw - 116px) * 0.009819); }
+  .dash-view[data-dash="lifecycle"] .lc-ring { width: calc((100vw - 116px) * 0.084592); height: calc((100vw - 116px) * 0.084592); }
+  .dash-view[data-dash="lifecycle"] .lc-ring-value { font-size: calc((100vw - 116px) * 0.022659); }
+  .dash-view[data-dash="lifecycle"] .lc-ring-max { font-size: calc((100vw - 116px) * 0.010574); }
+  .dash-view[data-dash="lifecycle"] .lc-health { gap: calc((100vw - 116px) * 0.013595); }
+  .dash-view[data-dash="lifecycle"] .lc-health-band { font-size: calc((100vw - 116px) * 0.013595); }
+  .dash-view[data-dash="lifecycle"] .lc-health-delta { font-size: calc((100vw - 116px) * 0.010574); }
+  .dash-view[data-dash="lifecycle"] .lc-health-caption { font-size: calc((100vw - 116px) * 0.009819); padding-left: calc((100vw - 116px) * 0.015861); }
+  .dash-view[data-dash="lifecycle"] .lc-tile { padding-left: calc((100vw - 116px) * 0.009063); padding-right: calc((100vw - 116px) * 0.006042); }
+  .dash-view[data-dash="lifecycle"] .lc-tile-label { font-size: calc((100vw - 116px) * 0.008686); }
+  .dash-view[data-dash="lifecycle"] .lc-tile-value { font-size: calc((100vw - 116px) * 0.021148); }
+  .dash-view[data-dash="lifecycle"] .lc-tile-sub { font-size: calc((100vw - 116px) * 0.009063); gap: calc((100vw - 116px) * 0.003776); }
+  .dash-view[data-dash="lifecycle"] .lc-tile-sub .lc-arrow { font-size: calc((100vw - 116px) * 0.011329); }
+  .dash-view[data-dash="lifecycle"] .lc-bars .hb-label { font-size: calc((100vw - 116px) * 0.009819); }
+  .dash-view[data-dash="lifecycle"] .lc-bars--condition .hb-pct { font-size: calc((100vw - 116px) * 0.009819); }
+  .dash-view[data-dash="lifecycle"] .lc-bars--systems .hb-value { font-size: calc((100vw - 116px) * 0.009819); }
+  .dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-label { font-size: calc((100vw - 116px) * 0.008686); }
+  .dash-view[data-dash="lifecycle"] .lc-bars--risk .hb-meta { font-size: calc((100vw - 116px) * 0.009063); }
+  .dash-view[data-dash="lifecycle"] .lc-risk-head { font-size: calc((100vw - 116px) * 0.006798); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-panel { padding-left: calc((100vw - 116px) * 0.004532); padding-right: calc((100vw - 116px) * 0.004532); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-head { font-size: calc((100vw - 116px) * 0.007931); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-num { font-size: calc((100vw - 116px) * 0.012840); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-cap { font-size: calc((100vw - 116px) * 0.006798); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-share { font-size: calc((100vw - 116px) * 0.009063); }
+  .dash-view[data-dash="lifecycle"] .lc-table thead th { font-size: calc((100vw - 116px) * 0.007175); }
+  .dash-view[data-dash="lifecycle"] .lc-table--due thead th { font-size: calc((100vw - 116px) * 0.006798); }
+  .dash-view[data-dash="lifecycle"] .lc-table--warranty thead th { font-size: calc((100vw - 116px) * 0.006798); }
+  .dash-view[data-dash="lifecycle"] .lc-table tbody td { font-size: calc((100vw - 116px) * 0.008686); }
+  .dash-view[data-dash="lifecycle"] .lc-action { font-size: calc((100vw - 116px) * 0.008308); min-width: calc((100vw - 116px) * 0.037764); }
+  .dash-view[data-dash="lifecycle"] .lc-avg-val { font-size: calc((100vw - 116px) * 0.009063); }
+  .dash-view[data-dash="lifecycle"] .lc-donut-box { width: calc((100vw - 116px) * 0.113293); height: calc((100vw - 116px) * 0.113293); }
+  .dash-view[data-dash="lifecycle"] .lc-donut-value { font-size: calc((100vw - 116px) * 0.019637); }
+  .dash-view[data-dash="lifecycle"] .lc-donut-cap { font-size: calc((100vw - 116px) * 0.009819); }
+  .dash-view[data-dash="lifecycle"] .lc-dl-label, .dash-view[data-dash="lifecycle"] .lc-dl-count, .dash-view[data-dash="lifecycle"] .lc-dl-pct { font-size: calc((100vw - 116px) * 0.009063); }
+  .dash-view[data-dash="lifecycle"] .lc-ins-title { font-size: calc((100vw - 116px) * 0.009819); }
+  .dash-view[data-dash="lifecycle"] .lc-ins-desc { font-size: calc((100vw - 116px) * 0.009063); }
+  .dash-view[data-dash="lifecycle"] .lc-card .card-head .select--chip .select-btn { font-size: calc((100vw - 116px) * 0.009063); padding-left: calc((100vw - 116px) * 0.006798); padding-right: calc((100vw - 116px) * 0.005287); gap: calc((100vw - 116px) * 0.006042); }
+  .dash-view[data-dash="lifecycle"] .card[data-widget="lcRisk"] .card-head .select--chip .select-btn { font-size: calc((100vw - 116px) * 0.008308); padding-left: calc((100vw - 116px) * 0.004532); padding-right: calc((100vw - 116px) * 0.003021); gap: calc((100vw - 116px) * 0.003021); }
+  .dash-view[data-dash="lifecycle"] .card[data-widget="lcSystems"] .card-title { font-size: calc((100vw - 116px) * 0.011329); }
+  .dash-view[data-dash="lifecycle"] .lc-table tbody td, .dash-view[data-dash="lifecycle"] .lc-table thead th { padding-left: calc((100vw - 116px) * 0.003776); padding-right: calc((100vw - 116px) * 0.003776); }
+  .dash-view[data-dash="lifecycle"] .lc-table--due thead th { font-size: calc((100vw - 116px) * 0.006571); letter-spacing: 0; }
+  .dash-view[data-dash="lifecycle"] .lc-table .sort-caret { margin-left: 2px; }
+  .dash-view[data-dash="lifecycle"] .lc-table--warranty tbody td, .dash-view[data-dash="lifecycle"] .lc-table--warranty thead th { padding-left: calc((100vw - 116px) * 0.001964); padding-right: calc((100vw - 116px) * 0.001964); }
+  .dash-view[data-dash="lifecycle"] .lc-table--due { min-width: 0; }
+}
+
+/* ---- Responsive (§2) ----------------------------------------------------------------------- */
+@media (max-width: 1199px) {
+  .dash-view[data-dash="lifecycle"] .dash-grid > .lc-stack { grid-column: span var(--span-md, 12); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+  .dash-view[data-dash="lifecycle"] .lc-stack.is-single { grid-template-columns: minmax(0, 1fr); }
+  .dash-view[data-dash="lifecycle"] .lc-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dash-view[data-dash="lifecycle"] .lc-card--capex .lc-capex-chart { min-height: 280px; }
+  .dash-view[data-dash="lifecycle"] .lc-table-wrap { max-height: 320px; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-row { grid-template-columns: 40px minmax(0, 1fr) 120px 160px; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-tag .pill { width: 116px; }
+  .dash-view[data-dash="lifecycle"] .lc-outlook { min-height: 200px; gap: 8px; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-panel { padding: 12px 14px 0; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-head { font-size: 13px; line-height: 18px; letter-spacing: 0; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-num { font-size: 22px; line-height: 30px; letter-spacing: -0.01em; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-cap { font-size: 11px; letter-spacing: 0; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-share { font-size: 13px; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-row { height: auto; min-height: 50px; padding-top: 7px; padding-bottom: 7px; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-title, .dash-view[data-dash="lifecycle"] .lc-ins-desc { white-space: normal; overflow: visible; }
+}
+@media (max-width: 899px) {
+  .dash-view[data-dash="lifecycle"] .dash-grid > .lc-stack { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 16px; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-row { grid-template-columns: 40px minmax(0, 1fr) 160px; grid-template-rows: auto auto; height: auto; padding-top: 8px; padding-bottom: 8px; row-gap: 6px; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-tag { grid-column: 2; grid-row: 2; justify-content: flex-start; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-btn { grid-column: 3; grid-row: 1 / span 2; }
+  .dash-view[data-dash="lifecycle"] .lc-table--due { min-width: 640px; }
+  .dash-view[data-dash="lifecycle"] .lc-table--warranty { min-width: 420px; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-panel { padding: 10px 8px 0; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-head { font-size: clamp(10.5px, 1.6vw, 13px); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-num { font-size: clamp(17px, 2.6vw, 22px); letter-spacing: -0.02em; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-cap { font-size: clamp(9px, 1.3vw, 11px); }
+  .dash-view[data-dash="lifecycle"] .lc-table--due tbody td:first-child, .dash-view[data-dash="lifecycle"] .lc-table--warranty tbody td:first-child { position: sticky; left: 0; background: var(--bg-card); z-index: 1; }
+  .dash-view[data-dash="lifecycle"] .lc-table--due thead th:first-child, .dash-view[data-dash="lifecycle"] .lc-table--warranty thead th:first-child { left: 0; z-index: 2; }
+}
+@media (max-width: 599px) {
+  .dash-view[data-dash="lifecycle"] .lc-ring { width: 104px; height: 104px; }
+  .dash-view[data-dash="lifecycle"] .lc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dash-view[data-dash="lifecycle"] .lc-outlook { grid-template-columns: minmax(0, 1fr); }
+  .dash-view[data-dash="lifecycle"] .lc-ol-panel { flex-direction: row; align-items: center; gap: 12px; padding: 10px; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-figs { margin-top: 0; flex: 1; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-barwrap { flex: 0 0 60px; height: 66px; }
+  .dash-view[data-dash="lifecycle"] .lc-ol-share { margin-top: 4px; text-align: left; }
+  .dash-view[data-dash="lifecycle"] .lc-table { min-width: 520px; }
+  .dash-view[data-dash="lifecycle"] .lc-table--due { min-width: 640px; }
+  .dash-view[data-dash="lifecycle"] .lc-bars--systems .hb-row, .dash-view[data-dash="lifecycle"] .lc-bars--condition .hb-row { --hb-label: 40%; }
+  .dash-view[data-dash="lifecycle"] .lc-table tbody td:first-child, .dash-view[data-dash="lifecycle"] .lc-table thead th:first-child { position: sticky; left: 0; background: var(--bg-card); z-index: 1; }
+  .dash-view[data-dash="lifecycle"] .lc-table thead th:first-child { background: var(--table-header-bg); z-index: 2; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-row { grid-template-columns: 40px minmax(0, 1fr); }
+  .dash-view[data-dash="lifecycle"] .lc-ins-tag { grid-column: 2; grid-row: 2; }
+  .dash-view[data-dash="lifecycle"] .lc-ins-btn { grid-column: 2; grid-row: 3; justify-self: end; }
+  .dash-view[data-dash="lifecycle"] .card-head { flex-wrap: wrap; }
+  .dash-view[data-dash="lifecycle"] .card-head .select--chip .select-btn { height: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-view[data-dash="lifecycle"] .lc-ring-arc, .dash-view[data-dash="lifecycle"] .lc-ol-bar, .dash-view[data-dash="lifecycle"] .lc-avg-fill { transition: none; }
+}
+
+</style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.js"></script>
 </head>
 <body>
@@ -3644,6 +4023,7 @@ canvas { display: block; }
         <button type="button" class="tab" role="tab" data-tab="energy" aria-selected="false" tabindex="-1">Energy</button>
         <button type="button" class="tab" role="tab" data-tab="occupancy" aria-selected="false" tabindex="-1">Occupancy</button>
         <button type="button" class="tab" role="tab" data-tab="iaq" aria-selected="false" tabindex="-1">Indoor Air Quality</button>
+        <button type="button" class="tab" role="tab" data-tab="lifecycle" aria-selected="false" tabindex="-1">Asset Lifecycle</button>
       </div>
 
       <div class="page">
@@ -4755,6 +5135,235 @@ vs. last month</span></span>
           <div class="legend-wrap iq-sensors-legend" id="iq-sensors-legend"></div>
         </div>
       </div>
+  </section>
+</div>
+</template>
+<template id="tpl-lifecycle">
+<!-- Asset Lifecycle dashboard markup (SPEC-lifecycle). Fragment only (no html/head/body wrapper): inlined by build.py as the
+     tpl-lifecycle template, fetched from dash/lifecycle.html by FDD.shell in the dev server. Every id starts with lc-,
+     every data-widget with lc. Static text matches the mock; every number is filled in by dash/lifecycle.js from data. -->
+<div class="dash-grid lc-grid">
+
+  <!-- Row 1 -->
+  <section class="card lc-card lc-card--health" data-widget="lcHealth" data-title="Asset Health Index" data-desc="Condition-weighted score of the asset register" data-row="1" aria-labelledby="lc-health-title" style="--span:3; --span-md:4">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-health-title">Asset Health Index</h2>
+    </div>
+    <div class="card-body">
+      <div class="lc-health">
+        <div class="lc-ring" id="lc-health-ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+            <circle class="lc-ring-rest" id="lc-health-rest" cx="60" cy="60" r="53"/>
+            <circle class="lc-ring-arc" id="lc-health-arc" cx="60" cy="60" r="53"/>
+          </svg>
+          <div class="lc-ring-center"><span class="lc-ring-value" id="lc-health-value">—</span><span class="lc-ring-max">/ 100</span></div>
+        </div>
+        <div class="lc-health-text">
+          <div class="lc-health-band" id="lc-health-band"></div>
+          <div class="lc-health-delta" id="lc-health-delta"><span class="lc-arrow" id="lc-health-arrow"></span><span class="lc-health-points" id="lc-health-points"></span></div>
+          <div class="lc-health-caption" id="lc-health-caption">vs last survey</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card lc-card lc-card--summary" data-widget="lcSummary" data-title="Lifecycle summary" data-desc="Survey coverage, poor assets, warranties and CAPEX horizons" data-row="1" aria-labelledby="lc-summary-title" style="--span:9; --span-md:8">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-summary-title">Lifecycle summary</h2>
+    </div>
+    <div class="card-body">
+      <div class="lc-tiles" id="lc-summary-tiles">
+        <div class="lc-tile" data-tile="surveyed" role="button" tabindex="0">
+          <div class="lc-tile-label">Assets surveyed</div>
+          <div class="lc-tile-value" id="lc-tile-surveyed-value">—</div>
+          <div class="lc-tile-sub" id="lc-tile-surveyed-sub"></div>
+        </div>
+        <div class="lc-tile" data-tile="poor" role="button" tabindex="0">
+          <div class="lc-tile-label">Poor / end-of-life assets</div>
+          <div class="lc-tile-value" id="lc-tile-poor-value">—</div>
+          <div class="lc-tile-sub" id="lc-tile-poor-sub"></div>
+        </div>
+        <div class="lc-tile" data-tile="expiring" role="button" tabindex="0">
+          <div class="lc-tile-label">Warranties expiring next 12 months</div>
+          <div class="lc-tile-value" id="lc-tile-expiring-value">—</div>
+          <div class="lc-tile-sub" id="lc-tile-expiring-sub"></div>
+        </div>
+        <div class="lc-tile" data-tile="y5" role="button" tabindex="0">
+          <div class="lc-tile-label">5-year CAPEX forecast</div>
+          <div class="lc-tile-value" id="lc-tile-y5-value">—</div>
+          <div class="lc-tile-sub" id="lc-tile-y5-sub"></div>
+        </div>
+        <div class="lc-tile" data-tile="y10" role="button" tabindex="0">
+          <div class="lc-tile-label">10-year CAPEX forecast</div>
+          <div class="lc-tile-value" id="lc-tile-y10-value">—</div>
+          <div class="lc-tile-sub" id="lc-tile-y10-sub"></div>
+        </div>
+        <div class="lc-tile" data-tile="y25" role="button" tabindex="0">
+          <div class="lc-tile-label">25-year CAPEX forecast</div>
+          <div class="lc-tile-value" id="lc-tile-y25-value">—</div>
+          <div class="lc-tile-sub" id="lc-tile-y25-sub"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Row 2 -->
+  <section class="card lc-card lc-card--capex" data-widget="lcCapex" data-title="Replacement Schedule &amp; CAPEX Forecast" data-desc="Planned replacement cost by system, 2026–2035, with cumulative spend" aria-labelledby="lc-capex-title" style="--span:8; --span-md:12">
+    <div class="card-head">
+      <div class="card-head-left">
+        <h2 class="card-title" id="lc-capex-title">Replacement Schedule &amp; CAPEX Forecast</h2>
+        <div class="card-sub">Based on condition survey and estimated replacement cost</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="lc-capex-plot">
+        <div class="dv-chart dv-chart--h280 lc-capex-chart"><canvas id="lc-capex-chart" tabindex="0" role="group" aria-label="Replacement schedule and CAPEX forecast, 2026 to 2035"></canvas></div>
+        <div class="lc-capex-empty" id="lc-capex-empty" hidden>
+          <p class="lc-capex-empty-title" id="lc-capex-empty-title"></p>
+          <p class="lc-capex-empty-sub" id="lc-capex-empty-sub"></p>
+        </div>
+      </div>
+      <div class="dv-legend dv-legend--center lc-legend" id="lc-capex-legend"></div>
+      <div class="sr-only"><table id="lc-capex-sr"></table></div>
+    </div>
+  </section>
+
+  <div class="lc-stack" id="lc-stack" style="--span:4; --span-md:12">
+    <section class="card lc-card lc-card--condition" data-widget="lcCondition" data-title="Condition Profile" data-desc="Share of assets by condition grade A–D" aria-labelledby="lc-condition-title">
+      <div class="card-head">
+        <h2 class="card-title" id="lc-condition-title">Condition Profile</h2>
+        <div class="select select--chip" id="lc-area-condition" data-select="area" data-widget="lcCondition"></div>
+      </div>
+      <div class="card-body">
+        <div class="lc-bars lc-bars--condition" id="lc-condition-bars" role="group" aria-label="Condition profile"></div>
+        <div class="sr-only"><table id="lc-condition-sr"></table></div>
+      </div>
+    </section>
+
+    <section class="card lc-card lc-card--systems" data-widget="lcSystems" data-title="Replacement Cost by System (10 year)" data-desc="10-year planned replacement cost by building system" aria-labelledby="lc-systems-title">
+      <div class="card-head">
+        <h2 class="card-title" id="lc-systems-title">Replacement Cost by System (10 year)</h2>
+        <div class="select select--chip" id="lc-area-systems" data-select="area" data-widget="lcSystems"></div>
+      </div>
+      <div class="card-body">
+        <div class="lc-bars lc-bars--systems" id="lc-systems-bars" role="group" aria-label="Replacement cost by system, 10 year"></div>
+        <div class="sr-only"><table id="lc-systems-sr"></table></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Row 3 -->
+  <section class="card lc-card lc-card--outlook" data-widget="lcOutlook" data-title="5 / 10 / 25 Year Outlook" data-desc="Assets due and estimated cost over three planning horizons" data-row="3" aria-labelledby="lc-outlook-title" style="--span:4; --span-md:12">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-outlook-title">5 / 10 / 25 Year Outlook</h2>
+      <div class="select select--chip" id="lc-area-outlook" data-select="area" data-widget="lcOutlook"></div>
+    </div>
+    <div class="card-body">
+      <div class="lc-outlook" id="lc-outlook">
+        <div class="lc-ol" data-key="y5" role="button" tabindex="0">
+          <div class="lc-ol-panel">
+            <div class="lc-ol-head"><strong>5 Year</strong> <span>(2026 – 2030)</span></div>
+            <div class="lc-ol-figs">
+              <div class="lc-ol-fig"><span class="lc-ol-num" id="lc-ol-y5-n">—</span><span class="lc-ol-cap">assets due</span></div>
+              <div class="lc-ol-fig"><span class="lc-ol-num" id="lc-ol-y5-c">—</span><span class="lc-ol-cap">estimated cost</span></div>
+            </div>
+            <div class="lc-ol-barwrap"><span class="lc-ol-bar" id="lc-ol-y5-bar"></span></div>
+          </div>
+          <div class="lc-ol-share" id="lc-ol-y5-share"></div>
+        </div>
+        <div class="lc-ol" data-key="y10" role="button" tabindex="0">
+          <div class="lc-ol-panel">
+            <div class="lc-ol-head"><strong>10 Year</strong> <span>(2026 – 2035)</span></div>
+            <div class="lc-ol-figs">
+              <div class="lc-ol-fig"><span class="lc-ol-num" id="lc-ol-y10-n">—</span><span class="lc-ol-cap">assets due</span></div>
+              <div class="lc-ol-fig"><span class="lc-ol-num" id="lc-ol-y10-c">—</span><span class="lc-ol-cap">estimated cost</span></div>
+            </div>
+            <div class="lc-ol-barwrap"><span class="lc-ol-bar" id="lc-ol-y10-bar"></span></div>
+          </div>
+          <div class="lc-ol-share" id="lc-ol-y10-share"></div>
+        </div>
+        <div class="lc-ol" data-key="y25" role="button" tabindex="0">
+          <div class="lc-ol-panel">
+            <div class="lc-ol-head"><strong>25 Year</strong> <span>(2026 – 2050)</span></div>
+            <div class="lc-ol-figs">
+              <div class="lc-ol-fig"><span class="lc-ol-num" id="lc-ol-y25-n">—</span><span class="lc-ol-cap">assets due</span></div>
+              <div class="lc-ol-fig"><span class="lc-ol-num" id="lc-ol-y25-c">—</span><span class="lc-ol-cap">estimated cost</span></div>
+            </div>
+            <div class="lc-ol-barwrap"><span class="lc-ol-bar" id="lc-ol-y25-bar"></span></div>
+          </div>
+          <div class="lc-ol-share" id="lc-ol-y25-share"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card lc-card lc-card--warranty" data-widget="lcWarranty" data-title="Upcoming Warranty Expiries" data-desc="Warranties ending in the next 12 months and the action needed" data-row="3" aria-labelledby="lc-warranty-title" style="--span:4; --span-md:6">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-warranty-title">Upcoming Warranty Expiries</h2>
+      <div class="select select--chip" id="lc-area-warranty" data-select="area" data-widget="lcWarranty"></div>
+    </div>
+    <div class="card-body">
+      <div class="lc-table-wrap" id="lc-warranty-wrap"><table class="table table--compact lc-table lc-table--warranty" id="lc-warranty-table" aria-label="Upcoming warranty expiries"></table></div>
+    </div>
+  </section>
+
+  <section class="card lc-card lc-card--floors" data-widget="lcFloors" data-title="Condition by Floor / Area" data-desc="Average condition and 10-year renewal cost by area" data-row="3" aria-labelledby="lc-floors-title" style="--span:4; --span-md:6">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-floors-title">Condition by Floor / Area</h2>
+      <div class="select select--chip" id="lc-area-floors" data-select="area" data-widget="lcFloors"></div>
+    </div>
+    <div class="card-body">
+      <div class="lc-table-wrap" id="lc-floors-wrap"><table class="table table--compact lc-table lc-table--floors" id="lc-floors-table" aria-label="Condition by floor or area"></table></div>
+    </div>
+  </section>
+
+  <!-- Row 4 -->
+  <section class="card lc-card lc-card--due" data-widget="lcDue" data-title="Assets Due for Replacement" data-desc="Assets planned for replacement in 2026–2030" data-row="4" aria-labelledby="lc-due-title" style="--span:6; --span-md:12">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-due-title">Assets Due for Replacement</h2>
+      <div class="select select--chip" id="lc-area-due" data-select="area" data-widget="lcDue"></div>
+    </div>
+    <div class="card-body">
+      <div class="lc-table-wrap" id="lc-due-wrap"><table class="table table--compact lc-table lc-table--due" id="lc-due-table" aria-label="Assets due for replacement"></table></div>
+    </div>
+  </section>
+
+  <section class="card lc-card lc-card--risk" data-widget="lcRisk" data-title="Lifecycle Risk by Asset Type" data-desc="Poor-condition assets and risk score by asset type" data-row="4" aria-labelledby="lc-risk-title" style="--span:3; --span-md:6">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-risk-title">Lifecycle Risk by Asset Type</h2>
+      <div class="select select--chip" id="lc-area-risk" data-select="area" data-widget="lcRisk"></div>
+    </div>
+    <div class="card-body">
+      <div class="lc-risk-head" aria-hidden="true"><span>Asset type</span><span>Poor condition</span><span>Risk score</span></div>
+      <div class="lc-bars lc-bars--risk" id="lc-risk-bars" role="group" aria-label="Lifecycle risk by asset type"></div>
+      <div class="sr-only"><table id="lc-risk-sr"></table></div>
+    </div>
+  </section>
+
+  <section class="card lc-card lc-card--wstatus" data-widget="lcWarrantyStatus" data-title="Warranty Status" data-desc="Active, expiring, expired and unknown warranties" data-row="4" aria-labelledby="lc-wstatus-title" style="--span:3; --span-md:6">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-wstatus-title">Warranty Status</h2>
+    </div>
+    <div class="card-body">
+      <div class="lc-donut">
+        <div class="lc-donut-box"><canvas id="lc-warranty-donut" tabindex="0" role="group" aria-label="Warranty status"></canvas>
+          <div class="lc-donut-center" aria-hidden="true"><span class="lc-donut-value" id="lc-donut-value">—</span><span class="lc-donut-cap">Total assets</span></div>
+        </div>
+      </div>
+      <ul class="lc-donut-legend" id="lc-donut-legend"></ul>
+      <div class="sr-only"><table id="lc-wstatus-sr"></table></div>
+    </div>
+  </section>
+
+  <!-- Row 5 -->
+  <section class="card lc-card lc-card--insights" data-widget="lcInsights" data-title="Lifecycle Insights &amp; Recommended Actions" data-desc="Auto-generated lifecycle insights with next steps" aria-labelledby="lc-insights-title" style="--span:12; --span-md:12">
+    <div class="card-head">
+      <h2 class="card-title" id="lc-insights-title">Lifecycle Insights &amp; Recommended Actions</h2>
+      <div class="select select--chip" id="lc-area-insights" data-select="area" data-widget="lcInsights"></div>
+    </div>
+    <div class="card-body">
+      <div class="lc-insights" id="lc-insights"></div>
+    </div>
   </section>
 </div>
 </template>
@@ -10953,7 +11562,7 @@ vs. last month</span></span>
 
   const RANGES = ['now', 'week', 'month', 'year'];
   const THEMES = ['system', 'light', 'dark'];
-  const TABS = { fdd: 'FDD & Building Health', fm: 'Facilities Management', energy: 'Energy', occupancy: 'Occupancy', iaq: 'Indoor Air Quality' };
+  const TABS = { fdd: 'FDD & Building Health', fm: 'Facilities Management', energy: 'Energy', occupancy: 'Occupancy', iaq: 'Indoor Air Quality', lifecycle: 'Asset Lifecycle' };
   const TAB_BULLETS = {
     fm: ['Work orders by status', 'PPM calendar', 'Contractor SLA', 'Space requests'],
     energy: ['Consumption by building and system', 'Carbon intensity', 'Baseline vs. actual', 'Tariff cost'],
@@ -15220,16 +15829,20 @@ vs. last month</span></span>
   }
   function swapHeader(rec) {
     const node = subtitleNode(), live = byId('live-toggle'), sum = byId('summary-line'), add = byId('add-widget-label');
+    const range = byId('range-control');
     if (!header.saved) {
       header.saved = true;
       header.subtitleText = node ? node.nodeValue : null;
       header.liveHidden = live ? live.hidden : false;
+      header.rangeHidden = range ? range.hidden : false;
       header.summary = sum ? sum.textContent : '';
       header.addLabel = add ? add.textContent : '';
     }
     const d = rec.def;
     if (node) node.nodeValue = d.showUpdated === false ? String(d.subtitle || '') : String(d.subtitle || '') + ' · ';
     if (live) live.hidden = d.showUpdated === false;
+    // CONTRACT-ADDITION: def.showRange === false hides the Now/Week/Month/Year control (e.g. Asset Lifecycle has none)
+    if (range) range.hidden = d.showRange === false ? true : header.rangeHidden;
     const title = byId('page-title');
     if (title && d.title && title.textContent !== d.title) title.textContent = d.title;
     // the mockups show a plain "Dashboard" bar on every tab (app.js writes "Dashboard · <tab>" for its old placeholder)
@@ -15251,6 +15864,8 @@ vs. last month</span></span>
     const node = subtitleNode(), live = byId('live-toggle'), sum = byId('summary-line'), add = byId('add-widget-label');
     if (node && header.subtitleText != null) node.nodeValue = header.subtitleText;
     if (live) live.hidden = header.liveHidden;
+    const range = byId('range-control');
+    if (range) range.hidden = header.rangeHidden;
     if (sum) sum.textContent = fddSummary();
     if (add) add.textContent = fddAddLabel();
     header.saved = false;
@@ -25907,8 +26522,9 @@ vs. last month</span></span>
   function srTable(wrapId, caption, labels, cols) {
     const wrap = $(wrapId);
     if (!wrap) return;
-    let t = wrap.querySelector('table.iq-sr');
-    if (!t) { t = kit.h('table', { 'class': 'iq-sr' }); wrap.appendChild(t); }
+    // The hidden class sits on a wrapper div: a <table> ignores width:1px and would widen the page on phones.
+    let t = wrap.querySelector('.iq-sr > table');
+    if (!t) { t = kit.h('table'); wrap.appendChild(kit.h('div', { 'class': 'iq-sr' }, t)); }
     kit.clear(t);
     t.appendChild(kit.h('caption', null, caption));
     const hr = kit.h('tr', null, kit.h('th', { scope: 'col' }, 'Period'));
@@ -26739,6 +27355,1760 @@ vs. last month</span></span>
         if (ev.spaceId && (ev.kind === 'new' || ev.kind === 'high')) t.action = { label: 'View', onClick: function () { openSpace(ev.spaceId); } };
         return { toast: t };
       }
+    }
+  };
+  FDD.shell.register(def);
+})();
+
+</script>
+<script>
+/* ---- dash/lifecycle.data.js ---- */
+/* ==========================================================================
+   FDD & Building Health — dash/lifecycle.data.js
+   FDD.dashData.lifecycle : Asset Lifecycle mock data + queries (SPEC-lifecycle §5). DOM-free, deterministic
+   (seeded PRNG from FDD.dashCommon), runs in jsc after data.js + dash/common.js. Built LAZILY on first query.
+   Records: the 192-asset lifecycle register (16 fully specified heroes, 37 other named C/D assets, named A/B assets,
+   seeded fillers), capital plan lines (asset capex + minor works allowances, 2026–2050), warranties, surveys and the
+   18 Sep 2025 plan snapshot. Every widget number is an aggregation over these; the default view (estate, All Areas)
+   reproduces the mockup exactly.
+   Query API: health / summary / capex / condition / systems / outlook / warrantyExpiries / floors / due / risk /
+   warrantyStatus / insights / assets / planLines / asset / zoneAnalysis / summaryLine / areas / tick.
+   ========================================================================== */
+(function () {
+  'use strict';
+  var root = (typeof window !== 'undefined') ? window : (typeof globalThis !== 'undefined' ? globalThis : this);
+  root.FDD = root.FDD || {};
+  root.FDD.dashData = root.FDD.dashData || {};
+  var FDD = root.FDD;
+  var C = FDD.dashCommon;
+  if (!C) { try { console.error('[dash/lifecycle.data] FDD.dashCommon is missing — load dash/common.js first'); } catch (e) { /* ignore */ } return; }
+  var BUILDS = 0;
+  function init() {
+  BUILDS++;
+
+  var MONTHS = C.MONTHS, pad2 = C.pad2;
+  function fmtInt(n) { return C.fmt.int(n); }
+  function sub(purpose) { return C.rng(C.hashSeed('lifecycle|' + purpose)); }
+  function shuffle(arr, r) { for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(r.next() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+  function sumBy(arr, f) { var s = 0; for (var i = 0; i < arr.length; i++) s += +f(arr[i]) || 0; return s; }
+
+  /* ---------------------------------------------------------------------
+     1. Masters — zones (+ alias), systems, groups, risk groups, types
+     --------------------------------------------------------------------- */
+  var ZONES = C.zones('all').map(function (z) { return { id: z.id, name: z.id === 'z-l04lpp' ? 'L04 - LPP' : z.name, compact: z.id === 'z-l04lpp' ? 'L04-LPP' : z.name, siteId: z.siteId, siteName: z.siteName }; });
+  var ZBY = {}; ZONES.forEach(function (z, i) { z.idx = i; ZBY[z.id] = z; });
+  var ZCODE = { 'z-l01w': 'L01W', 'z-l02e': 'L02E', 'z-l02w': 'L02W', 'z-l03w': 'L03W', 'z-l04lpp': 'L04', 'z-l06e': 'L06E', 'z-rest': 'RST', 'z-gym': 'GYM', 'z-car': 'CP', 'z-boh': 'BOH',
+    'w-goodsin': 'W', 'w-hall-a': 'W', 'w-hall-b': 'W', 'w-mezz': 'W', 'w-plant': 'W', 'w-yard': 'W' };
+  var PLAN_ZONES = ['z-l01w', 'z-l02e', 'z-l02w', 'z-l04lpp', 'z-rest', 'z-gym'];
+  function zoneName(id) { return ZBY[id] ? ZBY[id].name : String(id || '—'); }
+  function zoneCompact(id) { return ZBY[id] ? ZBY[id].compact : String(id || '—'); }
+  function siteOfZone(id) { return ZBY[id] ? ZBY[id].siteId : null; }
+
+  var GROUPS = ['HVAC', 'Electrical', 'Fire & Life Safety', 'Vertical Transport', 'Plumbing', 'Other'];
+  var SYS_GROUP = { 'HVAC': 'HVAC', 'Cooling': 'HVAC', 'Heating': 'HVAC', 'Ventilation': 'HVAC', 'Electrical': 'Electrical', 'Small Power': 'Electrical', 'Lighting': 'Electrical',
+    'Fire & Life Safety': 'Fire & Life Safety', 'Vertical Transport': 'Vertical Transport', 'Plumbing': 'Plumbing', 'Security': 'Other', 'Loading': 'Other', 'BMS': 'Other' };
+  var CHART_KEY = { 'HVAC': 'hvac', 'Electrical': 'elec', 'Fire & Life Safety': 'fls', 'Vertical Transport': 'vt', 'Plumbing': 'other', 'Other': 'other' };
+  var SERIES = [
+    { key: 'hvac', label: 'HVAC' }, { key: 'elec', label: 'Electrical' }, { key: 'fls', label: 'Fire & Life Safety' },
+    { key: 'vt', label: 'Vertical Transport' }, { key: 'other', label: 'Other' }
+  ];
+  var CELL_GROUP = { hvac: 'HVAC', elec: 'Electrical', fls: 'Fire & Life Safety', vt: 'Vertical Transport', other: 'Other' };
+  var RISK = [
+    ['AHUs', 6.73], ['FCUs', 4.40], ['Pumps', 4.33], ['Lighting Panels', 5.29], ['Lifts', 3.75], ['Fire Alarms', 5.75], ['Boilers', 4.50],
+    ['Air Handling (Other)', 3.40], ['Chillers', 4.00], ['Small Power', 6.00],
+    ['CCTV & Access', 4.00], ['Water Heaters', 4.00], ['Gas Heaters', 4.00], ['Dock Equipment', 4.00], ['Controls', 4.00], ['Sprinklers', 4.00]
+  ];
+  var RISK_W = {}; RISK.forEach(function (r) { RISK_W[r[0]] = r[1]; });
+  /* type → [risk group, default fine system, expected life (y), base like-for-like cost £k, suppliers] */
+  var TYPES = {
+    'AHU': ['AHUs', 'HVAC', 25, 260, ['Daikin', 'Systemair', 'Trane']],
+    'FCU': ['FCUs', 'HVAC', 20, 14, ['Mitsubishi', 'Daikin']],
+    'Lift': ['Lifts', 'Vertical Transport', 25, 380, ['KONE']],
+    'Chiller': ['Chillers', 'Cooling', 25, 380, ['Trane', 'Carrier']],
+    'Boiler': ['Boilers', 'Heating', 20, 190, ['Hoval', 'Remeha']],
+    'Fire Alarm': ['Fire Alarms', 'Fire & Life Safety', 15, 150, ['Advanced']],
+    'LV Panel': ['Small Power', 'Electrical', 30, 170, ['Schneider']],
+    'UPS': ['Small Power', 'Small Power', 15, 110, ['Schneider']],
+    'Pump': ['Pumps', 'Cooling', 15, 26, ['Grundfos', 'Armstrong']],
+    'Lighting Panel': ['Lighting Panels', 'Lighting', 25, 22, ['Schneider']],
+    'Distribution Board': ['Small Power', 'Electrical', 30, 34, ['Schneider', 'ABB']],
+    'Fan': ['Air Handling (Other)', 'Ventilation', 20, 28, ['Systemair', 'Nuaire']],
+    'CCTV': ['CCTV & Access', 'Security', 10, 18, ['Honeywell']],
+    'Access Control': ['CCTV & Access', 'Security', 12, 24, ['Honeywell']],
+    'BMS Controller': ['Controls', 'BMS', 15, 30, ['Trend']],
+    'Water Heater': ['Water Heaters', 'Plumbing', 15, 16, ['Andrews']],
+    'Booster Set': ['Pumps', 'Plumbing', 20, 40, ['Grundfos']],
+    'Gas Heater': ['Gas Heaters', 'Heating', 15, 22, ['Reznor']],
+    'Sprinkler Pump': ['Sprinklers', 'Fire & Life Safety', 25, 90, ['Armstrong']],
+    'Emergency Lighting': ['Fire Alarms', 'Fire & Life Safety', 15, 20, ['Advanced']],
+    'Dock Leveller': ['Dock Equipment', 'Loading', 20, 32, ['Hormann']],
+    'Roller Shutter': ['Dock Equipment', 'Loading', 20, 24, ['Hormann']],
+    'LED Panel': ['Lighting Panels', 'Lighting', 20, 12, ['Schneider']],
+    'VAV Box': ['Air Handling (Other)', 'Ventilation', 20, 9, ['Trox']]
+  };
+  var CODE = { 'AHU': 'AHU', 'FCU': 'FCU', 'Pump': 'PMP', 'Lighting Panel': 'LP', 'Distribution Board': 'DB', 'Fan': 'FAN', 'CCTV': 'CCTV', 'Access Control': 'ACS',
+    'BMS Controller': 'BMS', 'Water Heater': 'WH', 'Booster Set': 'BWP', 'Gas Heater': 'GH', 'Sprinkler Pump': 'SPK', 'Emergency Lighting': 'EML', 'Dock Leveller': 'DL',
+    'Roller Shutter': 'RS', 'LED Panel': 'LED', 'VAV Box': 'VAV', 'Boiler': 'BLR', 'Chiller': 'CH', 'UPS': 'UPS', 'LV Panel': 'LV', 'Lift': 'LFT', 'Fire Alarm': 'FA' };
+  /* filler types per cell group (HQ office/plant zones) and per Warehouse zone */
+  var FILL_TYPES = {
+    hvac: [['FCU', 5], ['Fan', 2], ['Pump', 2], ['VAV Box', 2]],
+    elec: [['Lighting Panel', 3], ['Distribution Board', 2]],
+    fls: [['Emergency Lighting', 3]],
+    vt: [['Lift', 1]],
+    other: [['CCTV', 2], ['Access Control', 2], ['BMS Controller', 1]]
+  };
+  var WH_TYPES = {
+    'w-goodsin': [['Dock Leveller', 3], ['Roller Shutter', 3], ['LED Panel', 1]],
+    'w-hall-a': [['Gas Heater', 3], ['LED Panel', 3], ['Sprinkler Pump', 1]],
+    'w-hall-b': [['Gas Heater', 3], ['LED Panel', 3], ['CCTV', 1]],
+    'w-mezz': [['FCU', 3], ['LED Panel', 2], ['Access Control', 1]],
+    'w-plant': [['Pump', 2], ['BMS Controller', 1], ['Water Heater', 1], ['Distribution Board', 1]],
+    'w-yard': [['CCTV', 2], ['LED Panel', 1]]
+  };
+  var HQ_OTHER_TYPES = [['FCU', 4], ['Lighting Panel', 2], ['Distribution Board', 1], ['CCTV', 1], ['Access Control', 1], ['Emergency Lighting', 1], ['Fan', 1], ['Water Heater', 1]];
+
+  /* ---------------------------------------------------------------------
+     2. Plan targets (SPEC §5.2) — £k per zone × cell group × year 2026…2035, assets due per zone × year
+     --------------------------------------------------------------------- */
+  var YEARS = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035];
+  var Z0 = { hvac: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], elec: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], fls: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], vt: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], other: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
+  function cells(o) { var out = {}; Object.keys(Z0).forEach(function (k) { out[k] = (o[k] || Z0[k]).slice(); }); return out; }
+  var CELLS = {
+    'z-l01w': cells({ hvac: [105, 5, 20, 10, 40, 50, 70, 75, 65, 80], elec: [5, 15, 25, 55, 20, 10, 15, 15, 20, 20], fls: [5, 5, 10, 0, 10, 5, 15, 10, 15, 25], other: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10] }),
+    'z-l02e': cells({ hvac: [0, 115, 10, 5, 20, 35, 55, 55, 45, 60], elec: [0, 15, 15, 10, 15, 15, 10, 15, 20, 25], fls: [0, 10, 10, 0, 10, 5, 10, 10, 20, 25], other: [5, 15, 15, 10, 15, 15, 15, 15, 15, 20] }),
+    'z-l02w': cells({ hvac: [0, 10, 65, 95, 35, 40, 60, 60, 50, 65], elec: [5, 25, 35, 20, 35, 20, 20, 20, 30, 30], fls: [5, 15, 15, 0, 15, 10, 20, 20, 35, 45], other: [10, 20, 20, 20, 20, 20, 25, 25, 30, 30] }),
+    'z-l04lpp': cells({ hvac: [5, 0, 5, 0, 10, 15, 20, 20, 20, 25], elec: [0, 10, 15, 10, 15, 70, 70, 80, 95, 115], fls: [0, 5, 5, 30, 5, 15, 25, 20, 40, 55], vt: [70, 85, 80, 50, 40, 35, 65, 60, 60, 135] }),
+    'z-rest': cells({ hvac: [0, 5, 10, 5, 20, 15, 15, 15, 15, 20], elec: [5, 15, 15, 5, 20, 10, 10, 10, 15, 15], fls: [5, 5, 5, 0, 5, 5, 10, 10, 15, 20], other: [0, 5, 5, 5, 5, 0, 5, 5, 5, 5] }),
+    'z-gym': cells({ hvac: [0, 10, 10, 5, 25, 5, 10, 5, 5, 5], elec: [0, 15, 15, 10, 15, 5, 5, 10, 10, 15], fls: [0, 5, 5, 0, 5, 5, 10, 10, 15, 25] })
+  };
+  var DUE = {
+    'z-l01w': [3, 1, 1, 1, 1, 1, 2, 2, 1, 2], 'z-l02e': [1, 1, 1, 1, 1, 1, 1, 2, 1, 2], 'z-l02w': [1, 1, 2, 1, 2, 1, 2, 1, 2, 2],
+    'z-l04lpp': [1, 1, 1, 2, 0, 2, 2, 1, 2, 2], 'z-rest': [1, 1, 0, 0, 0, 1, 0, 1, 1, 1], 'z-gym': [0, 1, 1, 0, 0, 0, 1, 1, 0, 1]
+  };
+  var SUBSPLIT = { // £k, 10-year: Small Power inside Electrical, Plumbing inside Other (§5.2 / §5.4 step 5b)
+    sp: { 'z-l04lpp': 120, 'z-l01w': 40, 'z-l02w': 40, 'z-rest': 40 },
+    plumb: { 'z-l01w': 60, 'z-l02e': 100, 'z-l02w': 140, 'z-rest': 20 }
+  };
+  var QUOTA = { // A / B / C / D per zone (§5.2)
+    'z-l01w': [7, 7, 3, 3], 'z-l02e': [3, 6, 5, 2], 'z-l02w': [1, 6, 7, 4], 'z-l04lpp': [1, 2, 7, 6], 'z-rest': [2, 4, 3, 1], 'z-gym': [2, 2, 2, 2],
+    'z-l03w': [10, 6, 2, 0], 'z-l06e': [10, 6, 2, 0], 'z-car': [5, 5, 2, 0], 'z-boh': [6, 6, 2, 0],
+    'w-goodsin': [6, 2, 0, 0], 'w-hall-a': [6, 1, 0, 0], 'w-hall-b': [6, 1, 0, 0], 'w-mezz': [5, 1, 0, 0], 'w-plant': [6, 4, 0, 0], 'w-yard': [4, 0, 0, 0]
+  };
+  var LATE_DUE = { // assets with replYear 2036–2050 per zone (§5.2: HQ 53, WH 22)
+    'z-l01w': 5, 'z-l02e': 4, 'z-l02w': 3, 'z-l04lpp': 2, 'z-rest': 4, 'z-gym': 3, 'z-l03w': 10, 'z-l06e': 10, 'z-car': 6, 'z-boh': 6,
+    'w-goodsin': 5, 'w-hall-a': 4, 'w-hall-b': 4, 'w-mezz': 2, 'w-plant': 6, 'w-yard': 1
+  };
+  var LATE_CAPEX = { s1: 5220000, s2: 1620000 };
+  var REG = { // like-for-like register value targets (£) per bucket and site (§5.2 / D-14)
+    s1: { b5: 3640000, b10: 5460000, b25: 7240000, bx: 4560000 },
+    s2: { b5: 0, b10: 0, b25: 2900000, bx: 2200000 }
+  };
+  var SNAP = { // 18 Sep 2025 plan snapshot (D-30) and previous survey (D-12)
+    plan: { all: { y5: 2090000, y10: 5350000, y25: 12510000 }, s1: { y5: 2090000, y10: 5350000, y25: 10850000 }, s2: { y5: 0, y10: 0, y25: 1660000 } },
+    expiring: { all: 16, s1: 10, s2: 6 }
+  };
+
+  /* ---------------------------------------------------------------------
+     3. Asset records — heroes (verbatim), other named C/D, named A/B
+     --------------------------------------------------------------------- */
+  var ASSETS = [], ABY = {}, ANAME = {};
+  function mkId(name) { return 'lc-' + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function addAsset(o) {
+    var t = TYPES[o.type] || TYPES['FCU'];
+    var system = o.system || t[1];
+    var a = {
+      id: o.id || mkId(o.name), name: o.name, type: o.type, riskGroup: o.riskGroup || t[0], system: system, group: SYS_GROUP[system] || 'Other',
+      siteId: siteOfZone(o.zoneId), zoneId: o.zoneId, servesZoneId: o.servesZoneId || o.zoneId,
+      grade: o.grade, prevGrade: o.prevGrade || o.grade, surveyStatus: o.surveyStatus || 'Complete', surveyDate: o.surveyDate || null,
+      installYear: o.installYear || null, eol: o.eol || null, expectedLife: null,
+      replYear: o.replYear || null, replCost: o.replCost || 0, capexBasis: o.capexBasis || null, capex: o.capex || 0,
+      warrantyEnd: o.warrantyEnd === undefined ? 'auto' : o.warrantyEnd, supplier: o.supplier || null, defectsOpen: o.defectsOpen || 0,
+      fddTag: o.fddTag || null, hero: !!o.hero, named: !!o.named, filler: !!o.filler, costed: !!o.hero
+    };
+    a.chartKey = CHART_KEY[a.group];
+    ASSETS.push(a); ABY[a.id] = a; ANAME[a.name.toLowerCase()] = a;
+    return a;
+  }
+  // [name, type, riskGroup, system, zone, serves, grade, prev, install, eol, replYear, replCost, basis, capex, warrantyEnd, supplier, defects, fddTag]
+  [
+    ['AHU-08', 'AHU', 'AHUs', 'HVAC', 'z-l01w', null, 'D', 'D', 2001, '2027-01', 2026, 320000, 'Life extension', 48000, '2026-11-12', 'Daikin', 2, 'AHU-08'],
+    ['AHU-12', 'AHU', 'AHUs', 'HVAC', 'z-l01w', null, 'D', 'C', 2002, '2027-08', 2026, 380000, 'Life extension', 57000, '2024-03-31', 'Daikin', 1, null],
+    ['Lift 3', 'Lift', 'Lifts', 'Vertical Transport', 'z-l04lpp', null, 'D', 'C', 2002, '2027-10', 2026, 450000, 'Life extension', 70000, '2027-01-18', 'KONE', 0, 'Lift-03'],
+    ['Chiller-01', 'Chiller', 'Chillers', 'Cooling', 'z-l02e', null, 'D', 'C', 2003, '2028-10', 2027, 380000, 'Refurbish', 114000, '2027-01-03', 'Trane', 1, 'Chiller-01'],
+    ['Boiler-02', 'Boiler', 'Boilers', 'Heating', 'z-l02w', null, 'C', 'B', 2009, '2029-07', 2028, 210000, 'Refurbish', 63000, '2028-06-30', 'Hoval', 0, 'Boiler-02'],
+    ['Fire Panel 02', 'Fire Alarm', 'Fire Alarms', 'Fire & Life Safety', 'z-l04lpp', 'z-l06e', 'C', 'C', 2014, '2029-11', 2029, 180000, 'Life extension', 27000, '2027-02-25', 'Advanced', 1, null],
+    ['Main Switch 01', 'LV Panel', 'Small Power', 'Electrical', 'z-l01w', null, 'C', 'C', 2000, '2030-07', 2029, 180000, 'Refurbish', 54000, null, 'Schneider', 0, null],
+    ['FCU-22', 'FCU', 'FCUs', 'HVAC', 'z-l02w', null, 'C', 'C', 2010, '2030-09', 2029, 95000, 'Replace', 95000, '2022-09-30', 'Mitsubishi', 0, null],
+    ['Lift 2', 'Lift', 'Lifts', 'Vertical Transport', 'z-l04lpp', null, 'D', 'D', 2002, '2031-03', 2027, 300000, 'Refurbish', 85000, '2025-12-31', 'KONE', 0, null],
+    ['Lift 4', 'Lift', 'Lifts', 'Vertical Transport', 'z-l04lpp', null, 'D', 'D', 2004, '2031-06', 2029, 300000, 'Refurbish', 50000, '2025-12-31', 'KONE', 0, null],
+    ['FCU-G1', 'FCU', 'FCUs', 'HVAC', 'z-gym', null, 'D', 'D', 2008, '2030-12', 2027, 10000, 'Replace', 10000, '2028-09-30', 'Mitsubishi', 0, null],
+    ['DB-L04-1', 'Lighting Panel', 'Lighting Panels', 'Lighting', 'z-l04lpp', null, 'D', 'D', 1999, '2031-01', 2028, 15000, 'Replace', 15000, '2019-12-31', 'Schneider', 0, null],
+    ['Goods Lift', 'Lift', 'Lifts', 'Vertical Transport', 'z-l04lpp', null, 'C', 'C', 2006, '2033-06', 2032, 260000, 'Refurbish', 65000, '2027-06-22', 'KONE', 1, null],
+    ['Lift 1', 'Lift', 'Lifts', 'Vertical Transport', 'z-l04lpp', null, 'C', 'C', 2008, '2035-09', 2035, 450000, 'Refurbish', 135000, '2025-12-31', 'KONE', 0, null],
+    ['UPS-01', 'UPS', 'Small Power', 'Small Power', 'z-l04lpp', null, 'C', 'C', 2016, '2031-09', 2031, 120000, 'Refurbish', 36000, '2027-03-14', 'Schneider', 0, 'UPS-01'],
+    ['FCU-12', 'FCU', 'FCUs', 'HVAC', 'z-l02e', null, 'C', 'C', 2011, '2031-06', 2031, 18000, 'Replace', 18000, '2027-03-28', 'Mitsubishi', 1, null]
+  ].forEach(function (x) {
+    addAsset({ name: x[0], type: x[1], riskGroup: x[2], system: x[3], zoneId: x[4], servesZoneId: x[5], grade: x[6], prevGrade: x[7], installYear: x[8], eol: x[9],
+      replYear: x[10], replCost: x[11], capexBasis: x[12], capex: x[13], warrantyEnd: x[14], supplier: x[15], defectsOpen: x[16], fddTag: x[17], hero: true, named: true });
+  });
+  // other named C/D (type, system, zone, grade, replYear, fddTag)
+  [
+    ['FCU-04', 'FCU', null, 'z-l01w', 'D', 2031], ['FCU-02', 'FCU', null, 'z-l01w', 'C', 2032], ['LP-L01W', 'Lighting Panel', null, 'z-l01w', 'C', 2038],
+    ['CHW-P2', 'Pump', 'Cooling', 'z-l02e', 'D', 2032], ['FCU-14', 'FCU', null, 'z-l02e', 'C', 2033], ['CHW-P1', 'Pump', 'Cooling', 'z-l02e', 'C', 2034],
+    ['LP-L02E', 'Lighting Panel', null, 'z-l02e', 'C', 2037], ['AHU-06', 'AHU', null, 'z-l02e', 'C', 2033], ['AHU-05', 'AHU', null, 'z-l02w', 'D', 2031],
+    ['FCU-21', 'FCU', null, 'z-l02w', 'D', 2032], ['LTHW-P3', 'Pump', 'Heating', 'z-l02w', 'D', 2032], ['Boiler-01', 'Boiler', null, 'z-l02w', 'D', 2033, 'Boiler-01'],
+    ['Boiler-03', 'Boiler', null, 'z-l02w', 'C', 2034], ['HWS-P1', 'Pump', 'Plumbing', 'z-l02w', 'C', 2034], ['AHU-07', 'AHU', null, 'z-l02w', 'C', 2035],
+    ['LP-L02W', 'Lighting Panel', null, 'z-l02w', 'C', 2039], ['Chiller-02', 'Chiller', null, 'z-l02w', 'C', 2040, 'Chiller-02'],
+    ['Fire Panel 01', 'Fire Alarm', null, 'z-l04lpp', 'C', 2033], ['DB-L04-2', 'Lighting Panel', null, 'z-l04lpp', 'C', 2032], ['AHU-10', 'AHU', null, 'z-l04lpp', 'D', 2031],
+    ['CHW-P4', 'Pump', 'Cooling', 'z-l04lpp', 'D', 2034], ['CHW-P5', 'Pump', 'Cooling', 'z-l04lpp', 'C', 2035], ['KEF-01', 'Fan', 'Ventilation', 'z-rest', 'D', 2031],
+    ['AHU-R1', 'AHU', null, 'z-rest', 'C', 2033], ['SP-R1', 'Pump', 'Plumbing', 'z-rest', 'C', 2034], ['Fire Panel 04', 'Fire Alarm', null, 'z-rest', 'C', 2035],
+    ['SF-G1', 'Fan', 'Ventilation', 'z-gym', 'D', 2032], ['FCU-G2', 'FCU', null, 'z-gym', 'C', 2033], ['LTHW-P-G1', 'Pump', 'Heating', 'z-gym', 'C', 2035],
+    ['FCU-31', 'FCU', null, 'z-l03w', 'C', 2038], ['FCU-32', 'FCU', null, 'z-l03w', 'C', 2041], ['FCU-61', 'FCU', null, 'z-l06e', 'C', 2039],
+    ['Fire Panel 03', 'Fire Alarm', null, 'z-l06e', 'C', 2040], ['CPF-1', 'Fan', 'Ventilation', 'z-car', 'C', 2037], ['SP-1', 'Pump', 'Plumbing', 'z-car', 'C', 2042],
+    ['DB-BOH-1', 'Lighting Panel', null, 'z-boh', 'C', 2038], ['FCU-B1', 'FCU', null, 'z-boh', 'C', 2041]
+  ].forEach(function (x) { addAsset({ name: x[0], type: x[1], system: x[2], zoneId: x[3], grade: x[4], replYear: x[5], fddTag: x[6] || null, named: true }); });
+  // named A/B assets (warranty heroes, pending surveys, FDD links)
+  [
+    ['AHU-03', 'AHU', null, 'z-l02w', 'B', 'A', 2038, 'AHU-03'], ['AHU-14', 'AHU', null, 'z-l03w', 'B', 'B', 2040, null], ['ACS-01', 'Access Control', null, 'z-l03w', 'A', 'A', 2045, null],
+    ['CCTV-01', 'CCTV', null, 'z-l06e', 'A', 'A', 2044, null], ['UPS-02', 'UPS', null, 'z-l06e', 'B', 'B', 2043, null],
+    ['AHU-W01', 'AHU', null, 'w-plant', 'B', 'B', 2042, 'AHU-W01'], ['AHU-W02', 'AHU', null, 'w-plant', 'B', 'B', 2042, 'AHU-W02'],
+    ['SP-W01', 'Sprinkler Pump', null, 'w-plant', 'A', 'A', null, 'SP-W01'], ['BWP-W01', 'Booster Set', null, 'w-plant', 'A', 'A', 2045, 'BWP-W01'],
+    ['CCTV-W01', 'CCTV', null, 'w-goodsin', 'A', 'A', 2037, null], ['ACS-W01', 'Access Control', null, 'w-goodsin', 'A', 'A', 2040, null],
+    ['ACS-W02', 'Access Control', null, 'w-goodsin', 'A', 'A', 2046, null], ['MSB-W01', 'LV Panel', null, 'w-goodsin', 'A', 'A', null, 'MSB-W01'],
+    ['Dock Leveller 2', 'Dock Leveller', null, 'w-goodsin', 'B', 'B', 2039, null], ['Roller Shutter 4', 'Roller Shutter', null, 'w-goodsin', 'B', 'B', 2044, null],
+    ['CCTV-W02', 'CCTV', null, 'w-hall-a', 'A', 'A', 2038, null], ['GH-W01', 'Gas Heater', null, 'w-hall-a', 'A', 'A', 2041, 'GH-W01']
+  ].forEach(function (x) { addAsset({ name: x[0], type: x[1], system: x[2], zoneId: x[3], grade: x[4], prevGrade: x[5], replYear: x[6] || 2099, fddTag: x[7], named: true }); });
+
+  // warranties of named assets (D-4 dates, §5.2 / §5.3) — end, supplier, defects (Review → ≥ 1)
+  var EXPIRING = [
+    ['FCU-14', '2027-04-30', 'Mitsubishi', 1], ['ACS-01', '2027-05-21', 'Honeywell', 0], ['Fire Panel 01', '2027-06-08', 'Advanced', 0],
+    ['AHU-06', '2027-07-13', 'Daikin', 0], ['UPS-02', '2027-08-02', 'Schneider', 0], ['FCU-02', '2027-08-20', 'Mitsubishi', 1], ['CCTV-01', '2027-09-09', 'Honeywell', 0],
+    ['AHU-W01', '2027-04-06', 'Systemair', 0], ['AHU-W02', '2027-04-06', 'Systemair', 0], ['CCTV-W01', '2027-04-19', 'Honeywell', 1], ['CCTV-W02', '2027-04-19', 'Honeywell', 0],
+    ['SP-W01', '2027-04-26', 'Armstrong', 0], ['ACS-W01', '2027-05-03', 'Honeywell', 0], ['GH-W01', '2027-05-17', 'Reznor', 0], ['BWP-W01', '2027-05-24', 'Grundfos', 0],
+    ['MSB-W01', '2027-07-14', 'Schneider', 0], ['ACS-W02', '2027-08-02', 'Honeywell', 0]
+  ];
+  var EXPIRED = ['Boiler-01', 'AHU-05', 'FCU-21', 'LTHW-P3', 'CHW-P2', 'FCU-04', 'AHU-10', 'CHW-P4', 'KEF-01', 'SF-G1', 'Dock Leveller 2', 'Roller Shutter 4'];
+  var UNKNOWN = ['LP-L01W', 'LP-L02E', 'DB-L04-2', 'CPF-1', 'SP-1', 'DB-BOH-1', 'FCU-B1'];
+  var PENDING = ['FCU-31', 'FCU-61', 'CPF-1', 'DB-BOH-1', 'AHU-14', 'ACS-W02'];
+  var MSB_SYSTEM = { 'MSB-W01': 'Electrical' };
+  function byName(n) { return ANAME[String(n).toLowerCase()] || null; }
+  EXPIRING.forEach(function (x) { var a = byName(x[0]); a.warrantyEnd = x[1]; a.supplier = x[2]; a.defectsOpen = x[3]; });
+  UNKNOWN.forEach(function (n) { byName(n).warrantyEnd = null; });
+  PENDING.forEach(function (n) { byName(n).surveyStatus = 'Pending'; });
+  Object.keys(MSB_SYSTEM).forEach(function (n) { var a = byName(n); a.system = MSB_SYSTEM[n]; });
+  byName('Boiler-02').fddTag = 'Boiler-02';
+
+  /* ---------------------------------------------------------------------
+     4. Fillers + due assignment (§5.4 steps 3–4)
+     --------------------------------------------------------------------- */
+  var KEY_ORDER = ['hvac', 'elec', 'fls', 'vt', 'other'];
+  var gradeBags = {};
+  (function bags() {
+    var r = sub('grades');
+    ZONES.forEach(function (z) {
+      var q = QUOTA[z.id], named = ASSETS.filter(function (a) { return a.zoneId === z.id; });
+      var nA = q[0] - named.filter(function (a) { return a.grade === 'A'; }).length;
+      var nB = q[1] - named.filter(function (a) { return a.grade === 'B'; }).length;
+      var bag = [], i;
+      for (i = 0; i < nA; i++) bag.push('A');
+      for (i = 0; i < nB; i++) bag.push('B');
+      gradeBags[z.id] = shuffle(bag, r);
+    });
+  })();
+  var fillSeq = {};
+  var rFill = sub('fillers');
+  function makeFiller(zoneId, type, replYear) {
+    var code = CODE[type] || 'AST', zc = ZCODE[zoneId];
+    var key = code + '-' + zc;
+    fillSeq[key] = (fillSeq[key] || 0) + 1;
+    var name = code + '-' + zc + '-' + pad2(fillSeq[key]);
+    while (ANAME[name.toLowerCase()]) { fillSeq[key]++; name = code + '-' + zc + '-' + pad2(fillSeq[key]); }
+    var grade = gradeBags[zoneId].length ? gradeBags[zoneId].shift() : 'A';
+    return addAsset({ name: name, type: type, zoneId: zoneId, grade: grade, replYear: replYear, filler: true });
+  }
+  function pickType(list) { return rFill.weighted(list); }
+  // 4a. plan zones 2026–2035
+  PLAN_ZONES.forEach(function (zid) {
+    YEARS.forEach(function (Y, yi) {
+      var here = ASSETS.filter(function (a) { return a.zoneId === zid && a.replYear === Y; });
+      var need = DUE[zid][yi] - here.length;
+      if (need < 0) throw new Error('lifecycle: too many named assets in ' + zid + ' ' + Y);
+      var covered = {}; here.forEach(function (a) { covered[a.chartKey] = true; });
+      for (var n = 0; n < need; n++) {
+        var best = null;
+        KEY_ORDER.forEach(function (k) { var v = CELLS[zid][k][yi]; if (!covered[k] && v > 0 && (best == null || v > CELLS[zid][best][yi])) best = k; });
+        if (best == null) KEY_ORDER.forEach(function (k) { var v = CELLS[zid][k][yi]; if (v > 0 && (best == null || v > CELLS[zid][best][yi])) best = k; });
+        covered[best] = true;
+        makeFiller(zid, pickType(FILL_TYPES[best]), Y);
+      }
+    });
+  });
+  // 4b. 2036–2050 and beyond 2050 (every zone)
+  (function lateAndRest() {
+    var r = sub('late');
+    ZONES.forEach(function (z) {
+      var named = ASSETS.filter(function (a) { return a.zoneId === z.id && a.replYear > 2035 && a.replYear <= 2050; }).length;
+      var need = LATE_DUE[z.id] - named;
+      var wh = z.siteId === 's2';
+      var types = wh ? WH_TYPES[z.id] : HQ_OTHER_TYPES;
+      for (var i = 0; i < need; i++) makeFiller(z.id, pickType(types), wh ? r.int(2038, 2050) : r.int(2036, 2050));
+      while (gradeBags[z.id].length) makeFiller(z.id, pickType(types), 2099);
+    });
+  })();
+
+  /* ---------------------------------------------------------------------
+     5. Capex lines + minor works allowances (§5.4 step 5, 5b)
+     --------------------------------------------------------------------- */
+  var ALLOW = [];   // { id, zoneId, siteId, group, chartKey, system, year, amount, label }
+  var allowSeq = 0;
+  function addAllowance(zoneId, key, year, amount, system) {
+    var group = CELL_GROUP[key];
+    var o = { id: 'al-' + (++allowSeq), zoneId: zoneId, siteId: siteOfZone(zoneId), group: group, chartKey: key, system: system || group, year: year, amount: amount,
+      label: key === 'vt' ? 'Lift minor works allowance' : 'Minor works allowance' };
+    ALLOW.push(o);
+    return o;
+  }
+  PLAN_ZONES.forEach(function (zid) {
+    YEARS.forEach(function (Y, yi) {
+      var rem = {};
+      KEY_ORDER.forEach(function (k) { rem[k] = CELLS[zid][k][yi] * 1000; });
+      var here = ASSETS.filter(function (a) { return a.zoneId === zid && a.replYear === Y; });
+      here.forEach(function (a) { if (a.hero) rem[a.chartKey] -= a.capex; });
+      here.filter(function (a) { return !a.hero && a.named; }).concat(here.filter(function (a) { return a.filler; })).forEach(function (a) {
+        var r0 = rem[a.chartKey];
+        var c = r0 < 5000 ? Math.max(0, r0) : Math.max(5000, Math.floor(0.7 * r0 / 500) * 500);
+        a.capex = c; a.costed = true; rem[a.chartKey] = r0 - c;
+      });
+      KEY_ORDER.forEach(function (k) {
+        if (rem[k] < 0) throw new Error('lifecycle: negative cell ' + zid + ' ' + k + ' ' + Y);
+        if (rem[k] > 0) addAllowance(zid, k, Y, rem[k]);
+      });
+    });
+  });
+  // 5b. sub-system tagging — Small Power inside Electrical, Plumbing inside Other
+  function tag(zid, key, targetK, system) {
+    var need = targetK * 1000 - sumBy(ASSETS.filter(function (a) { return a.zoneId === zid && a.system === system && a.replYear >= 2026 && a.replYear <= 2035; }), function (a) { return a.capex; });
+    if (need < 0) throw new Error('lifecycle: ' + system + ' assets exceed target in ' + zid);
+    var lines = ALLOW.filter(function (l) { return l.zoneId === zid && l.chartKey === key && l.system === l.group; }).sort(function (a, b) { return a.year - b.year; });
+    for (var i = 0; i < lines.length && need > 0; i++) {
+      var l = lines[i];
+      if (l.amount <= need) { l.system = system; need -= l.amount; }
+      else {
+        var rest = l.amount - need;
+        l.amount = need; l.system = system;
+        var nl = addAllowance(zid, key, l.year, rest);
+        ALLOW.splice(ALLOW.indexOf(nl), 1); ALLOW.splice(ALLOW.indexOf(l) + 1, 0, nl);
+        need = 0;
+      }
+    }
+    if (need > 0) throw new Error('lifecycle: not enough ' + key + ' allowance for ' + system + ' in ' + zid);
+  }
+  Object.keys(SUBSPLIT.sp).forEach(function (zid) { tag(zid, 'elec', SUBSPLIT.sp[zid], 'Small Power'); });
+  Object.keys(SUBSPLIT.plumb).forEach(function (zid) { tag(zid, 'other', SUBSPLIT.plumb[zid], 'Plumbing'); });
+  ALLOW.forEach(function (l) { if (l.system === 'Plumbing') l.group = 'Plumbing'; });
+
+  /* ---------------------------------------------------------------------
+     6–7. 2036–2050 plan lines, like-for-like replacement cost (§5.4 steps 6–7)
+     --------------------------------------------------------------------- */
+  var rCost = sub('cost');
+  ASSETS.forEach(function (a) { a._w = (TYPES[a.type] ? TYPES[a.type][3] : 20) * (0.8 + 0.45 * rCost.next()); });
+  function bucket(a) { return a.replYear <= 2030 ? 'b5' : (a.replYear <= 2035 ? 'b10' : (a.replYear <= 2050 ? 'b25' : 'bx')); }
+  /** Split total (£) over items ∝ weight, multiples of `unit`, residual on the largest. */
+  function splitTotal(items, total, weight, unit, set) {
+    if (!items.length) return;
+    var W = sumBy(items, weight), acc = 0, big = null;
+    items.forEach(function (it) {
+      var v = Math.floor(total * weight(it) / W / unit) * unit;
+      set(it, v); acc += v;
+      if (!big || weight(it) > weight(big)) big = it;
+    });
+    set(big, null, total - acc);
+  }
+  ['s1', 's2'].forEach(function (site) {
+    var late = ASSETS.filter(function (a) { return a.siteId === site && a.replYear > 2035 && a.replYear <= 2050; });
+    splitTotal(late, LATE_CAPEX[site], function (a) { return a._w; }, 500, function (a, v, add) { if (v != null) a.capex = v; else a.capex += add; a.costed = true; });
+    ['b5', 'b10', 'b25', 'bx'].forEach(function (b) {
+      var list = ASSETS.filter(function (a) { return a.siteId === site && bucket(a) === b; });
+      var heroes = list.filter(function (a) { return a.hero; }), rest = list.filter(function (a) { return !a.hero; });
+      var extra = REG[site][b] - sumBy(heroes, function (a) { return a.replCost; }) - sumBy(rest, function (a) { return a.capex; });
+      if (extra < 0) throw new Error('lifecycle: register target too small ' + site + ' ' + b);
+      splitTotal(rest, extra, function (a) { return a._w; }, 1000, function (a, v, add) { if (v != null) a.replCost = a.capex + v; else a.replCost += add; });
+    });
+  });
+  ASSETS.forEach(function (a) {
+    if (a.replYear > 2050) a.capex = 0;
+    if (!a.capexBasis) {
+      var ratio = a.replCost ? a.capex / a.replCost : 1;
+      a.capexBasis = a.replYear <= 2028 && !a.named ? 'Obsolescence' : (ratio >= 0.9 ? 'Replace' : (ratio >= 0.25 ? 'Refurbish' : 'Life extension'));
+    }
+    delete a._w;
+  });
+
+  /* ---------------------------------------------------------------------
+     8–9. Life, warranties, surveys (§5.4 steps 3, 8, 9)
+     --------------------------------------------------------------------- */
+  (function lifeAndRecords() {
+    var r = sub('life'), rw = sub('warranty'), rs = sub('survey');
+    var A0 = 2026 * 12 + 8;   // anchor month index (Sep 2026)
+    ASSETS.forEach(function (a) {
+      var life = TYPES[a.type] ? TYPES[a.type][2] : 20;
+      if (!a.eol) {
+        var mi;
+        if (a.replYear <= 2030) mi = A0 + r.int(49, 72);
+        else if (a.replYear <= 2050) mi = a.replYear * 12 + r.int(-12, 23);
+        else mi = r.int(2051, 2058) * 12 + r.int(0, 11);
+        a.eol = Math.floor(mi / 12) + '-' + pad2(mi % 12 + 1);
+      }
+      var ey = +a.eol.slice(0, 4);
+      if (!a.installYear) {
+        if (a.siteId === 's2') a.installYear = 2022;
+        else if (['z-l03w', 'z-l06e', 'z-car', 'z-boh'].indexOf(a.zoneId) >= 0) a.installYear = r.chance(0.8) ? 2019 : r.int(2005, 2018);
+        else a.installYear = Math.max(1999, Math.min(2019, ey - life + r.int(-2, 2)));
+      }
+      a.expectedLife = ey - a.installYear;
+      var sup = TYPES[a.type] ? TYPES[a.type][4] : ['Schneider'];
+      if (!a.supplier) a.supplier = sup[rw.int(0, sup.length - 1)];
+      if (a.warrantyEnd === 'auto') {
+        if (EXPIRED.indexOf(a.name) >= 0) { var ex = C.localMs(2019, 1, 1) + Math.floor(rw.next() * (C.localMs(2026, 8, 31) - C.localMs(2019, 1, 1))); var p = C.parts(ex + 43200000); a.warrantyEnd = p.y + '-' + pad2(p.m) + '-' + pad2(p.d); }
+        else { var t = C.localMs(2027, 9, 19) + Math.floor(rw.next() * (C.localMs(2031, 12, 31) - C.localMs(2027, 9, 19))); var q = C.parts(t + 43200000); a.warrantyEnd = q.y + '-' + pad2(q.m) + '-' + pad2(q.d); }
+      }
+      if (a.surveyStatus === 'Complete') {
+        var sd = a.name === 'AHU-08' ? C.localMs(2026, 8, 14, 10) : C.addDays(C.localMs(2026, 8, 3), rs.int(0, 39)) + 10 * 3600000;
+        a.surveyDate = sd;
+      } else a.surveyDate = C.addDays(C.localMs(2025, 8, 4), rs.int(0, 36)) + 10 * 3600000;
+      a.prevSurveyDate = C.addDays(C.localMs(2025, 8, 4), rs.int(0, 36)) + 10 * 3600000;
+    });
+  })();
+  var PREV_GRADE = {}; ASSETS.forEach(function (a) { PREV_GRADE[a.id] = a.prevGrade; });
+  var LIVE = { version: 0, ticks: 0, rng: C.rng(C.hashSeed('lifecycle|live')), verifyIdx: 0, defectsIdx: 0, history: [] };
+  function bump() { LIVE.version++; CACHE = {}; }
+  var CACHE = {};
+
+  /* ---------------------------------------------------------------------
+     10. Derived fields (re-derived from now())
+     --------------------------------------------------------------------- */
+  var GRADE_VAL = { A: 1, B: 2, C: 3, D: 4 };
+  var GRADE_SCORE = { A: 100, B: 85, C: 60, D: 25 };
+  var GRADE_WORD = { A: 'Excellent', B: 'Good', C: 'Fair', D: 'Poor' };
+  var GRADE_DESC = { A: 'As new, performing as intended', B: 'Minor wear, no effect on performance', C: 'Visible deterioration; repairs needed to reach expected life', D: 'Major defects; at or near end of life' };
+  var W_STATUS = ['Active', 'Expiring', 'Expired', 'Unknown'];
+  var W_LABEL = { Active: 'Active', Expiring: 'Expiring < 12 months', Expired: 'Expired', Unknown: 'Unknown' };
+  function nowMs() { return C.now(); }
+  function ymd(s) { if (!s) return null; var y = +s.slice(0, 4), m = +s.slice(5, 7), d = +s.slice(8, 10); return C.localMs(y, m, d); }
+  function fmtDate(ts) { if (ts == null) return '—'; var p = C.parts(ts); return pad2(p.d) + ' ' + MONTHS[p.m - 1] + ' ' + p.y; }
+  function fmtDateStr(s) { if (!s) return '—'; return s.slice(8, 10) + ' ' + MONTHS[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4); }
+  function plusYear(ts) { var p = C.parts(ts); return C.localMs(p.y + 1, p.m, p.d, p.h, p.mi); }
+  function remMonths(a) { var p = C.parts(nowMs()); return (+a.eol.slice(0, 4) - p.y) * 12 + (+a.eol.slice(5, 7) - p.m); }
+  function eolText(a) { return MONTHS[+a.eol.slice(5, 7) - 1] + ' ' + a.eol.slice(0, 4); }
+  function remText(m) { if (m < 0) return 'Past end of life'; var y = Math.round(m / 12); return y === 0 ? '< 1 year' : (y === 1 ? '1 year' : y + ' years'); }
+  function wStatus(a, n) {
+    if (!a.warrantyEnd) return 'Unknown';
+    n = n == null ? nowMs() : n;
+    var e = ymd(a.warrantyEnd);
+    if (e <= n) return 'Expired';
+    return e <= plusYear(n) ? 'Expiring' : 'Active';
+  }
+  function poorEol(a) { return a.grade === 'D' || (a.grade === 'C' && remMonths(a) <= 0); }
+  function roundHalfUp(v) { return v < 0 ? -Math.round(-v) : Math.round(v); }
+  function pctOf(a, b) { return b ? roundHalfUp(a * 100 / b) : 0; }
+
+  /* ---------------------------------------------------------------------
+     11. Scope helpers + per-scope cache
+     --------------------------------------------------------------------- */
+  function norm(scope) { scope = scope || {}; return { siteId: scope.siteId && scope.siteId !== 'all' ? scope.siteId : 'all', areaId: scope.areaId && scope.areaId !== 'all' ? scope.areaId : 'all' }; }
+  function siteOk(siteId, s) { return siteId === 'all' || s === siteId; }
+  function inScope(a, sc) { return siteOk(sc.siteId, a.siteId) && (sc.areaId === 'all' || a.zoneId === sc.areaId || a.servesZoneId === sc.areaId); }
+  function allowIn(l, sc) { return siteOk(sc.siteId, l.siteId) && (sc.areaId === 'all' || l.zoneId === sc.areaId); }
+  function scoped(sc) { return ASSETS.filter(function (a) { return inScope(a, sc); }); }
+  function memo(name, scope, fn) {
+    var sc = norm(scope);
+    var key = name + '|' + sc.siteId + '|' + sc.areaId + '|' + Math.floor(nowMs() / 60000);
+    if (!(key in CACHE)) CACHE[key] = fn(sc);
+    return CACHE[key];
+  }
+  function siteLabel(siteId) { return siteId === 'all' ? '38BY London' : (siteId === 's1' ? '38BY London (HQ)' : 'Warehouse'); }
+  function scopeLabel(sc) { return sc.areaId !== 'all' ? zoneName(sc.areaId) : (sc.siteId === 's2' ? 'Warehouse' : (sc.siteId === 's1' ? '38BY London HQ' : '38BY London')); }
+
+  /** Plan lines (asset capex lines + allowances). filter: { site, area, zone (location only), from, to, chartKey, group, system, assets:[ids] } */
+  function planLines(filter) {
+    filter = filter || {};
+    var sc = norm({ siteId: filter.site, areaId: filter.area });
+    var from = filter.from || 2026, to = filter.to || 2050, out = [];
+    function keep(o) {
+      if (o.year < from || o.year > to) return false;
+      if (filter.chartKey && o.chartKey !== filter.chartKey) return false;
+      if (filter.group && o.group !== filter.group) return false;
+      if (filter.system && o.system !== filter.system) return false;
+      if (filter.zone && o.zoneId !== filter.zone) return false;
+      return true;
+    }
+    ASSETS.forEach(function (a) {
+      if (!(a.capex > 0) || a.replYear > 2050 || !inScope(a, sc)) return;
+      if (filter.assets && filter.assets.indexOf(a.id) < 0) return;
+      var o = { id: 'pl-' + a.id, kind: 'asset', assetId: a.id, name: a.name, type: a.type, system: a.system, group: a.group, chartKey: a.chartKey, zoneId: a.zoneId,
+        area: zoneName(a.servesZoneId), year: a.replYear, grade: a.grade, basis: a.capexBasis, capex: a.capex, fddTag: a.fddTag };
+      if (keep(o)) out.push(o);
+    });
+    if (!filter.assets) ALLOW.forEach(function (l) {
+      if (!allowIn(l, sc)) return;
+      var o = { id: l.id, kind: 'allowance', assetId: null, name: l.label, type: '—', system: l.system, group: l.group, chartKey: l.chartKey, zoneId: l.zoneId,
+        area: zoneName(l.zoneId), year: l.year, grade: null, basis: 'Allowance', capex: l.amount };
+      if (keep(o)) out.push(o);
+    });
+    return out;
+  }
+  function planSum(filter) { return sumBy(planLines(filter), function (l) { return l.capex; }); }
+  function dueIn(list, from, to) { return list.filter(function (a) { return a.replYear >= from && a.replYear <= to; }); }
+
+  /* ---------------------------------------------------------------------
+     12. Widget queries (SPEC §3)
+     --------------------------------------------------------------------- */
+  function gradeCounts(list, prev) { var c = { A: 0, B: 0, C: 0, D: 0 }; list.forEach(function (a) { c[prev ? a.prevGrade : a.grade]++; }); return c; }
+  function scoreOf(c) { var n = c.A + c.B + c.C + c.D; return n ? { sum: c.A * 100 + c.B * 85 + c.C * 60 + c.D * 25, n: n } : { sum: 0, n: 0 }; }
+  function band(score) { return score >= 80 ? 'Good' : (score >= 65 ? 'Fair' : 'Poor'); }
+  function health(scope) {
+    return memo('health', scope, function (sc) {
+      sc = { siteId: sc.siteId, areaId: 'all' };
+      var list = scoped(sc), c = gradeCounts(list), p = gradeCounts(list, true);
+      var s = scoreOf(c), ps = scoreOf(p);
+      var score = s.n ? Math.round(s.sum / s.n) : 0, prev = ps.n ? Math.round(ps.sum / ps.n) : 0;
+      return { score: score, prev: prev, delta: score - prev, band: band(score), counts: c, prevCounts: p, n: s.n, sum: s.sum, prevSum: ps.sum, exact: s.n ? s.sum / s.n : 0 };
+    });
+  }
+  function summary(scope) {
+    return memo('summary', scope, function (sc) {
+      sc = { siteId: sc.siteId, areaId: 'all' };
+      var list = scoped(sc), n = nowMs();
+      var surveyed = list.filter(function (a) { return a.surveyStatus === 'Complete'; }).length;
+      var pend = list.filter(function (a) { return a.surveyStatus === 'Pending'; });
+      var d = list.filter(function (a) { return a.grade === 'D'; }).length;
+      var cPast = list.filter(function (a) { return a.grade === 'C' && remMonths(a) <= 0; }).length;
+      var exp = list.filter(function (a) { return wStatus(a, n) === 'Expiring'; }).length;
+      var snapP = SNAP.plan[sc.siteId], snapE = SNAP.expiring[sc.siteId];
+      var hz = [['y5', 2030], ['y10', 2035], ['y25', 2050]].map(function (x) {
+        var v = planSum({ site: sc.siteId, to: x[1] }), p = snapP[x[0]];
+        var raw = p ? (v - p) * 100 / p : 0;
+        return { key: x[0], to: x[1], value: v, prev: p, pctRaw: raw, pct: Math.abs(raw) < 0.5 ? 0 : roundHalfUp(raw), assets: dueIn(list, 2026, x[1]).length };
+      });
+      return { total: list.length, surveyed: surveyed, pending: pend.length, surveyPct: pctOf(surveyed, list.length),
+        pendingDue: pend.length ? '30 Sep 2026' : null, poorEol: d + cPast, poorD: d, poorCPast: cPast,
+        expiring: exp, expiringPrev: snapE, expiringDelta: exp - snapE, expiringBy: fmtDate(plusYear(n)), horizons: hz };
+    });
+  }
+  function capex(scope) {
+    return memo('capex', scope, function (sc) {
+      sc = { siteId: sc.siteId, areaId: 'all' };
+      var series = {}; SERIES.forEach(function (s) { series[s.key] = YEARS.map(function () { return 0; }); });
+      planLines({ site: sc.siteId, from: 2026, to: 2035 }).forEach(function (l) { series[l.chartKey][l.year - 2026] += l.capex; });
+      var totals = YEARS.map(function (y, i) { return sumBy(SERIES, function (s) { return series[s.key][i]; }); });
+      var cum = [], acc = 0; totals.forEach(function (t) { acc += t; cum.push(acc); });
+      var list = scoped(sc);
+      var due = YEARS.map(function (y) { return list.filter(function (a) { return a.replYear === y; }).length; });
+      var firstLate = null;
+      list.forEach(function (a) { if (a.capex > 0 && a.replYear > 2035 && a.replYear <= 2050 && (firstLate == null || a.replYear < firstLate)) firstLate = a.replYear; });
+      return { labels: YEARS.map(String), years: YEARS.slice(), series: series, seriesMeta: SERIES, totals: totals, cumulative: cum, due: due, total: acc,
+        maxStack: Math.max.apply(null, totals), empty: acc === 0, firstLateYear: firstLate, scopeName: scopeLabel(sc) };
+    });
+  }
+  function condition(scope) {
+    return memo('condition', scope, function (sc) {
+      var list = scoped(sc), c = gradeCounts(list), p = gradeCounts(list, true), n = list.length;
+      var pct = C.lrPct([c.A, c.B, c.C, c.D]);
+      return { n: n, rows: ['A', 'B', 'C', 'D'].map(function (g, i) {
+        return { key: g, grade: g, label: g + ' - ' + GRADE_WORD[g], word: GRADE_WORD[g], desc: GRADE_DESC[g], count: c[g], pct: pct[i], prev: p[g], delta: c[g] - p[g] };
+      }) };
+    });
+  }
+  var SYS_ROWS = [
+    { key: 'HVAC', label: 'HVAC', f: { group: 'HVAC' } }, { key: 'Electrical', label: 'Electrical', f: { group: 'Electrical' } },
+    { key: 'Fire & Life Safety', label: 'Fire & Life Safety', f: { group: 'Fire & Life Safety' } }, { key: 'Vertical Transport', label: 'Vertical Transport', f: { group: 'Vertical Transport' } },
+    { key: 'Plumbing', label: 'Plumbing', f: { group: 'Plumbing' } }, { key: 'Small Power', label: 'Small Power', f: { system: 'Small Power' } }, { key: 'Other', label: 'Other', f: { group: 'Other' } }
+  ];
+  function assetMatches(a, f) { return (!f.group || a.group === f.group) && (!f.system || a.system === f.system); }
+  function systems(scope) {
+    return memo('systems', scope, function (sc) {
+      var list = scoped(sc), total10 = planSum({ site: sc.siteId, area: sc.areaId, to: 2035 });
+      var rows = SYS_ROWS.map(function (r) {
+        var base = { site: sc.siteId, area: sc.areaId };
+        var y5 = planSum(Object.assign({}, base, r.f, { to: 2030 })), y10b = planSum(Object.assign({}, base, r.f, { from: 2031, to: 2035 }));
+        return { key: r.key, label: r.label, filter: r.f, value: y5 + y10b, y5: y5, y10b: y10b,
+          assets: list.filter(function (a) { return assetMatches(a, r.f) && a.replYear <= 2035; }).length, share: pctOf(y5 + y10b, total10) };
+      });
+      var max = Math.max.apply(null, rows.map(function (r) { return r.value; }));
+      rows.forEach(function (r) { r.fill = max > 0 ? 76 * r.value / max : 0; });
+      return { rows: rows, total: total10, max: max, empty: total10 === 0, elec: rows[1].value, smallPower: rows[5].value };
+    });
+  }
+  function outlook(scope) {
+    return memo('outlook', scope, function (sc) {
+      var list = scoped(sc), register = sumBy(list, function (a) { return a.replCost; });
+      var hz = [['y5', '5 Year', 2030], ['y10', '10 Year', 2035], ['y25', '25 Year', 2050]].map(function (x) {
+        var due = dueIn(list, 2026, x[2]);
+        var val = sumBy(due, function (a) { return a.replCost; });
+        return { key: x[0], label: x[1], from: 2026, to: x[2], assets: due.length, capex: planSum({ site: sc.siteId, area: sc.areaId, to: x[2] }),
+          dueValue: val, register: register, share: pctOf(val, register), cd: due.filter(function (a) { return a.grade === 'C' || a.grade === 'D'; }).length };
+      });
+      var maxN = Math.max(hz[0].assets, hz[1].assets, hz[2].assets);
+      hz.forEach(function (h) { h.barPx = maxN > 0 ? 5 + 61 * h.assets / maxN : 5; });
+      return { horizons: hz, register: register, n: list.length };
+    });
+  }
+  function warrantyRow(a) {
+    var review = a.defectsOpen > 0;
+    return { id: a.id, assetId: a.id, name: a.name, system: a.system, end: a.warrantyEnd, endMs: ymd(a.warrantyEnd), endText: fmtDateStr(a.warrantyEnd), supplier: a.supplier,
+      action: review ? 'Review' : 'Plan', defects: a.defectsOpen, fddTag: a.fddTag, zoneId: a.zoneId, area: zoneName(a.servesZoneId) };
+  }
+  function warrantyExpiries(scope) {
+    return memo('wexp', scope, function (sc) {
+      var n = nowMs();
+      return scoped(sc).filter(function (a) { return wStatus(a, n) === 'Expiring'; }).map(warrantyRow)
+        .sort(function (a, b) { return a.endMs - b.endMs || a.name.localeCompare(b.name); });
+    });
+  }
+  function zoneStats(zid, siteId) {
+    var loc = ASSETS.filter(function (a) { return a.zoneId === zid; });
+    var c = gradeCounts(loc), n = loc.length, s = sumBy(loc, function (a) { return GRADE_VAL[a.grade]; });
+    var lines = planLines({ site: siteId || 'all', zone: zid, to: 2035 });
+    var byG = {}; lines.forEach(function (l) { byG[l.group] = (byG[l.group] || 0) + l.capex; });
+    var largest = null; GROUPS.forEach(function (g) { if (byG[g] && (!largest || byG[g] > byG[largest])) largest = g; });
+    return { key: zid, zoneId: zid, name: zoneName(zid), compact: zoneCompact(zid), counts: c, n: n, avg: n ? Math.round(s * 10 / n) / 10 : null,
+      cost10: sumBy(lines, function (l) { return l.capex; }), byGroup: byG, largest: largest, largestValue: largest ? byG[largest] : 0 };
+  }
+  function floors(scope) {
+    return memo('floors', scope, function (sc) {
+      var zs = ZONES.filter(function (z) { return siteOk(sc.siteId, z.siteId) && (sc.areaId === 'all' || z.id === sc.areaId); });
+      var rows = zs.map(function (z) { return zoneStats(z.id, sc.siteId); });
+      if (sc.areaId === 'all') { var planned = rows.filter(function (r) { return r.cost10 > 0; }); if (planned.length) rows = planned; }
+      rows.forEach(function (r, i) { r.order = i; });
+      return { rows: rows.filter(function (r) { return r.n > 0; }), allZero: rows.every(function (r) { return r.cost10 === 0; }) };
+    });
+  }
+  function assetRow(a) {
+    var rm = remMonths(a), ws = wStatus(a);
+    return { id: a.id, assetId: a.id, name: a.name, type: a.type, system: a.system, group: a.group, riskGroup: a.riskGroup, zoneId: a.zoneId, servesZoneId: a.servesZoneId,
+      area: zoneName(a.servesZoneId), location: zoneName(a.zoneId), siteId: a.siteId, grade: a.grade, prevGrade: a.prevGrade, remMonths: rm, remText: remText(rm), eolText: eolText(a),
+      replYear: a.replYear > 2050 ? null : a.replYear, replYearRaw: a.replYear, capex: a.replYear > 2050 ? null : a.capex, replCost: a.replCost, basis: a.capexBasis,
+      warranty: ws, warrantyLabel: W_LABEL[ws], warrantyEnd: a.warrantyEnd, warrantyEndMs: ymd(a.warrantyEnd),
+      warrantyText: ws === 'Unknown' ? 'Unknown' : (ws === 'Active' ? 'Active' : (ws === 'Expiring' ? 'Expiring' : 'Expired')) + ' · ' + fmtDateStr(a.warrantyEnd),
+      survey: a.surveyStatus, surveyDate: a.surveyDate, supplier: a.supplier, defects: a.defectsOpen, fddTag: a.fddTag, installYear: a.installYear, expectedLife: a.expectedLife };
+  }
+  function due(scope) {
+    return memo('due', scope, function (sc) {
+      return dueIn(scoped(sc), 2026, 2030).map(assetRow).sort(function (a, b) { return a.remMonths - b.remMonths || a.name.localeCompare(b.name); });
+    });
+  }
+  function risk(scope) {
+    return memo('risk', scope, function (sc) {
+      var groups = {};
+      scoped(sc).forEach(function (a) {
+        if (a.grade !== 'C' && a.grade !== 'D') return;
+        var g = groups[a.riskGroup] || (groups[a.riskGroup] = { key: a.riskGroup, name: a.riskGroup, weight: RISK_W[a.riskGroup] || 4, d: 0, c: 0, due2030: 0, assets: [] });
+        if (a.grade === 'D') g.d++; else g.c++;
+        if (a.replYear <= 2030) g.due2030++;
+        g.assets.push(a.id);
+      });
+      return Object.keys(groups).map(function (k) {
+        var g = groups[k]; g.poor = g.d + g.c; g.points = 2 * g.d + g.c; g.score = Math.min(100, Math.round(g.points * g.weight)); return g;
+      }).sort(function (a, b) { return b.score - a.score || b.poor - a.poor || a.name.localeCompare(b.name); });
+    });
+  }
+  function warrantyStatus(scope) {
+    return memo('wstatus', scope, function (sc) {
+      sc = { siteId: sc.siteId, areaId: 'all' };
+      var list = scoped(sc), n = nowMs(), cnt = { Active: 0, Expiring: 0, Expired: 0, Unknown: 0 }, next = {};
+      list.forEach(function (a) {
+        var s = wStatus(a, n); cnt[s]++;
+        var e = ymd(a.warrantyEnd);
+        if (s === 'Expiring' && (!next.Expiring || e < next.Expiring.ms || (e === next.Expiring.ms && a.name < next.Expiring.name))) next.Expiring = { ms: e, name: a.name, text: fmtDateStr(a.warrantyEnd) };
+        if (s === 'Active' && (!next.Active || e < next.Active.ms)) next.Active = { ms: e, name: a.name, text: fmtDateStr(a.warrantyEnd) };
+        if (s === 'Expired' && (!next.Expired || e > next.Expired.ms)) next.Expired = { ms: e, name: a.name, text: fmtDateStr(a.warrantyEnd) };
+      });
+      var vals = W_STATUS.map(function (k) { return cnt[k]; }), pct = C.lrPct(vals);
+      return { total: list.length, prevExpiring: SNAP.expiring[sc.siteId], segments: W_STATUS.map(function (k, i) {
+        return { key: k, label: W_LABEL[k], count: cnt[k], pct: pct[i], next: next[k] || null };
+      }) };
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     13. Insights (SPEC §3.12)
+     --------------------------------------------------------------------- */
+  function fmtM(p) { return '£' + (Math.round(p / 10000) / 100).toFixed(2) + 'm'; }
+  var GROUP_PHRASE = { 'HVAC': 'HVAC plant', 'Electrical': 'electrical distribution', 'Fire & Life Safety': 'fire & life safety systems', 'Vertical Transport': 'lifts',
+    'Plumbing': 'plumbing', 'Other': 'other building services' };
+  function insightSystem(sys) { return SYS_GROUP[sys] === 'HVAC' ? 'HVAC' : sys.toLowerCase(); }
+  function quarterOf(ms) { var p = C.parts(ms); return { y: p.y, q: Math.floor((p.m - 1) / 3) + 1 }; }
+  function insights(scope) {
+    return memo('insights', scope, function (sc) {
+      var list = scoped(sc), items = [], n = nowMs();
+      // 1 · bundle
+      var dSoon = list.filter(function (a) { return a.grade === 'D' && remMonths(a) <= 24; });
+      if (dSoon.length) {
+        var byType = {};
+        dSoon.forEach(function (a) { (byType[a.type] = byType[a.type] || []).push(a); });
+        var best = null;
+        Object.keys(byType).forEach(function (t) {
+          var arr = byType[t].sort(function (a, b) { return remMonths(a) - remMonths(b) || a.name.localeCompare(b.name); });
+          if (!best || arr.length > best.length || (arr.length === best.length && remMonths(arr[0]) < remMonths(best[0]))) best = arr;
+        });
+        var title, desc;
+        if (best.length >= 3) title = best[0].name + ', ' + best[1].name + ' and ' + (best.length - 2) + ' more ' + best[0].type + 's are condition D and due for replacement within 24 months.';
+        else if (best.length === 2) title = best[0].name + ' and ' + best[1].name + ' are both condition D and due for replacement within 24 months.';
+        else title = best[0].name + ' is condition D and due for replacement within 24 months.';
+        desc = best.length >= 2 ? 'Consider bundling procurement to reduce mobilisation costs and minimise operational disruption.' : 'Confirm the replacement scope and lead time to avoid an unplanned failure.';
+        items.push({ id: 'bundle', tag: 'High impact', tone: 'critical', title: title, desc: desc, button: 'View Assets',
+          action: { kind: 'assets', assets: best.map(function (a) { return a.id; }), label: best.map(function (a) { return a.name; }).join(', ') } });
+      }
+      // 2 · warranties
+      var exp = list.filter(function (a) { return wStatus(a, n) === 'Expiring'; });
+      if (exp.length) {
+        var bySys = {};
+        exp.forEach(function (a) { var s = insightSystem(a.system); bySys[s] = (bySys[s] || 0) + 1; });
+        var sys = Object.keys(bySys).sort(function (a, b) { return bySys[b] - bySys[a] || a.toLowerCase().localeCompare(b.toLowerCase()); });
+        var t2;
+        if (exp.length === 1) t2 = '1 warranty expires within the next 12 months (' + exp[0].name + ').';
+        else if (sys.length === 1) t2 = exp.length + ' warranties expire within the next 12 months, mostly ' + sys[0] + ' systems.';
+        else t2 = exp.length + ' warranties expire within the next 12 months, with a concentration across ' + sys[0] + ' and ' + sys[1] + ' systems.';
+        var byQ = {};
+        exp.forEach(function (a) { var q = quarterOf(ymd(a.warrantyEnd)); var k = q.y * 10 + q.q; byQ[k] = (byQ[k] || 0) + 1; });
+        var peak = Object.keys(byQ).map(Number).sort(function (a, b) { return byQ[b] - byQ[a] || a - b; })[0];
+        var cur = quarterOf(n), curK = cur.y * 10 + cur.q;
+        var qText;
+        if (peak === curK) qText = 'this quarter';
+        else { var pq = peak % 10, py = Math.floor(peak / 10); var bq = pq === 1 ? 4 : pq - 1, by = pq === 1 ? py - 1 : py; qText = (by * 10 + bq === curK) ? 'this quarter' : 'Q' + bq; }
+        items.push({ id: 'warranty', tag: 'Medium impact', tone: 'high', title: t2, desc: 'Plan renewal decisions in ' + qText + ' and review options for extended warranty coverage.',
+          button: 'View Schedule', action: { kind: 'warranty' }, systems: bySys, peakQuarter: peak });
+      }
+      // 3 · renewal hotspot
+      var zs = ZONES.filter(function (z) { return siteOk(sc.siteId, z.siteId) && (sc.areaId === 'all' || z.id === sc.areaId); }).map(function (z) { return zoneStats(z.id, sc.siteId); });
+      var hot = null; zs.forEach(function (z) { if (z.cost10 > 0 && (!hot || z.cost10 > hot.cost10)) hot = z; });
+      if (hot) {
+        var gs = GROUPS.filter(function (g) { return hot.byGroup[g] > 0; }).sort(function (a, b) { return hot.byGroup[b] - hot.byGroup[a]; });
+        var drv = gs.length >= 2 ? GROUP_PHRASE[gs[0]] + ' and ' + GROUP_PHRASE[gs[1]] : GROUP_PHRASE[gs[0]];
+        var t3 = sc.areaId !== 'all' ? hot.compact + '’s 10-year renewal requirement is ' + fmtM(hot.cost10) + ', driven by ' + drv + '.' : hot.compact + ' has the highest 10-year renewal requirement, driven by ' + drv + '.';
+        items.push({ id: 'hotspot', tag: 'Planning', tone: 'info', title: t3.replace('’s', "'s"), desc: 'Develop a phased replacement plan to manage cost and minimise disruption to building operations.',
+          button: 'View Analysis', action: { kind: 'analysis', zoneId: hot.zoneId } });
+      } else {
+        var first = null; list.forEach(function (a) { if (a.capex > 0 && a.replYear <= 2050 && (first == null || a.replYear < first)) first = a.replYear; });
+        items.push({ id: 'hotspot', tag: 'Planning', tone: 'info', title: 'No renewals are planned before 2036 in ' + scopeLabel(sc) + '.',
+          desc: first ? 'The first replacements fall in ' + first + '; review them in the next annual survey.' : 'No replacements fall within the 25-year horizon; review them in the next annual survey.',
+          button: 'View Analysis', action: { kind: 'plan', from: 2026, to: 2050 } });
+      }
+      // 4 · condition C under warranty
+      var cw = list.filter(function (a) { var s = wStatus(a, n); return a.grade === 'C' && (s === 'Active' || s === 'Expiring'); });
+      if (cw.length) {
+        var t4 = cw.length >= 3 ? 'Several assets in condition C remain under active warranty.' : (cw.length === 2 ? '2 assets in condition C remain under active warranty.' : cw[0].name + ' is in condition C and remains under active warranty.');
+        items.push({ id: 'cwarranty', tag: 'Data quality', tone: 'ok', title: t4, desc: 'Prioritise defects rectification before warranty expiry where possible to reduce future replacement costs.',
+          button: 'View Assets', action: { kind: 'cwarranty' }, count: cw.length });
+      }
+      items.forEach(function (it, i) { it.rank = i + 1; });
+      return items;
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     14. Lists, details, zone analysis
+     --------------------------------------------------------------------- */
+  /** assets(filter) → asset rows. filter: { site, area, group, chartKey, system, type, risk, cond:'A'|'B'|'C'|'D'|'CD'|'POOR', due:'y5'|'y10'|'y25'|'2032',
+      warranty:'Active'|'Expiring'|'Expired'|'Unknown'|'InForce', survey:'Complete'|'Pending', assets:[ids]|'id,id', q } */
+  function assets(filter) {
+    filter = filter || {};
+    var sc = norm({ siteId: filter.site, areaId: filter.area }), n = nowMs();
+    var ids = filter.assets ? (Array.isArray(filter.assets) ? filter.assets : String(filter.assets).split(',')) : null;
+    var q = filter.q ? String(filter.q).toLowerCase() : null;
+    var dueR = null;
+    if (filter.due) { var d = String(filter.due); dueR = d === 'y5' ? [2026, 2030] : (d === 'y10' ? [2026, 2035] : (d === 'y25' ? [2026, 2050] : [+d, +d])); }
+    return ASSETS.filter(function (a) {
+      if (!inScope(a, sc)) return false;
+      if (ids && ids.indexOf(a.id) < 0) return false;
+      if (filter.group && a.group !== filter.group) return false;
+      if (filter.chartKey && a.chartKey !== filter.chartKey) return false;
+      if (filter.system && a.system !== filter.system) return false;
+      if (filter.type && a.type !== filter.type) return false;
+      if (filter.risk && a.riskGroup !== filter.risk) return false;
+      if (filter.cond) {
+        var c = filter.cond;
+        if (c === 'CD' ? (a.grade !== 'C' && a.grade !== 'D') : (c === 'POOR' ? !poorEol(a) : a.grade !== c)) return false;
+      }
+      if (dueR && (a.replYear < dueR[0] || a.replYear > dueR[1])) return false;
+      if (filter.warranty) { var s = wStatus(a, n); if (filter.warranty === 'InForce' ? (s !== 'Active' && s !== 'Expiring') : s !== filter.warranty) return false; }
+      if (filter.survey && a.surveyStatus !== filter.survey) return false;
+      if (q && (a.name + ' ' + a.type + ' ' + zoneName(a.servesZoneId) + ' ' + zoneName(a.zoneId) + ' ' + a.system).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).map(assetRow);
+  }
+  function asset(id) {
+    var a = ABY[id] || byName(id);
+    if (!a) return null;
+    var r = assetRow(a);
+    var rg = risk({ siteId: 'all', areaId: 'all' }).filter(function (g) { return g.key === a.riskGroup; })[0];
+    r.riskScore = rg ? rg.score : 0;
+    r.gradeWord = GRADE_WORD[a.grade]; r.gradeDesc = GRADE_DESC[a.grade];
+    r.surveyText = a.surveyStatus === 'Complete' ? 'Complete · ' + fmtDate(a.surveyDate) : 'Pending · due by 30 Sep 2026';
+    r.lastSurveyMs = a.surveyDate;
+    r.surveyOld = a.surveyStatus === 'Complete' && (nowMs() - a.surveyDate) > 11 * 30.44 * 86400000;
+    r.warrantyDetail = r.warranty === 'Unknown' ? 'No warranty record' : (r.warranty === 'Expired' ? 'Expired ' + fmtDateStr(a.warrantyEnd) : r.warranty + ' · ends ' + fmtDateStr(a.warrantyEnd) + ' · ' + a.supplier);
+    return r;
+  }
+  function requestSurvey(id) {
+    var a = ABY[id]; if (!a) return null;
+    var changed = false;
+    if (a.surveyStatus === 'Complete' && (nowMs() - a.surveyDate) > 11 * 30.44 * 86400000) { a.surveyStatus = 'Pending'; changed = true; bump(); }
+    return { changed: changed, name: a.name, zone: zoneName(a.zoneId) };
+  }
+  function zoneAnalysis(zoneId, siteId) {
+    var st = zoneStats(zoneId, siteId || 'all');
+    var loc = ASSETS.filter(function (a) { return a.zoneId === zoneId; });
+    var rows = GROUPS.map(function (g) {
+      var y5 = planSum({ zone: zoneId, group: g, to: 2030 }), y10b = planSum({ zone: zoneId, group: g, from: 2031, to: 2035 });
+      return { key: g, system: g, y5: y5, y10b: y10b, total: y5 + y10b, assets: loc.filter(function (a) { return a.group === g && a.replYear <= 2035; }).length,
+        assetNames: loc.filter(function (a) { return a.group === g && a.replYear <= 2035; }).map(function (a) { return a.name; }) };
+    }).filter(function (r) { return r.total > 0 || r.assets > 0; }).sort(function (a, b) { return b.total - a.total; });
+    var top = loc.filter(function (a) { return a.capex > 0 && a.replYear <= 2035; }).sort(function (a, b) { return b.capex - a.capex || a.replYear - b.replYear; }).slice(0, 5).map(assetRow);
+    var due10 = loc.filter(function (a) { return a.replYear <= 2035; }).length;
+    return { zoneId: zoneId, name: zoneName(zoneId), compact: zoneCompact(zoneId), cost10: st.cost10, avg: st.avg, n: st.n, due10: due10, rows: rows, top: top,
+      totals: { y5: sumBy(rows, function (r) { return r.y5; }), y10b: sumBy(rows, function (r) { return r.y10b; }), total: sumBy(rows, function (r) { return r.total; }), assets: sumBy(rows, function (r) { return r.assets; }) } };
+  }
+  function summaryLine(siteId) {
+    var s = siteId && siteId !== 'all' ? C.siteById(siteId) : null;
+    return s ? '1 Area · ' + fmtInt(s.registryAssets) + ' assets' : '2 Areas · ' + fmtInt(C.ESTATE.registryAssets) + ' assets';
+  }
+  function areas(siteId) {
+    return ZONES.filter(function (z) { return !siteId || siteId === 'all' || z.siteId === siteId; }).map(function (z) { return { id: z.id, name: z.name, siteId: z.siteId, siteName: z.siteName }; });
+  }
+
+  /* ---------------------------------------------------------------------
+     15. Live events (SPEC §4.4)
+     --------------------------------------------------------------------- */
+  var VERIFY = ['LP-L01W', 'LP-L02E', 'DB-L04-2', 'CPF-1', 'SP-1', 'DB-BOH-1', 'FCU-B1', 'Main Switch 01'];
+  var HERO_ROWS = ['AHU-08', 'Chiller-01', 'Lift 3', 'Fire Panel 02', 'UPS-01', 'FCU-12', 'AHU-12', 'Boiler-02', 'Main Switch 01', 'FCU-22'];
+  function estateCounts() { return { surveyed: ASSETS.filter(function (a) { return a.surveyStatus === 'Complete'; }).length, total: ASSETS.length,
+    unknown: ASSETS.filter(function (a) { return !a.warrantyEnd; }).length }; }
+  var EVENTS = [
+    { w: 40, run: function () {
+      var a = PENDING.map(byName).filter(function (x) { return x.surveyStatus === 'Pending'; })[0];
+      if (!a) return null;
+      var r = LIVE.rng.next(), was = a.grade, g = 'ABCD'.indexOf(was);
+      if (r >= 0.7 && r < 0.9) g = Math.min(3, g + 1); else if (r >= 0.9) g = Math.max(0, g - 1);
+      a.grade = 'ABCD'.charAt(g); a.surveyStatus = 'Complete'; a.surveyDate = nowMs();
+      var ec = estateCounts();
+      var lead = a.grade === was ? 'Grade ' + was + ' confirmed' : 'Grade ' + was + ' → ' + a.grade;
+      return { kind: 'survey', assetId: a.id, toast: { title: 'Condition survey completed · ' + a.name, body: lead + ' · ' + zoneName(a.zoneId) + ' · ' + ec.surveyed + ' of ' + ec.total + ' surveyed', severity: 'info' } };
+    } },
+    { w: 30, run: function () {
+      var a = VERIFY.map(byName).filter(function (x) { return !x.warrantyEnd; })[0];
+      if (a) {
+        if (LIVE.ticks <= 3 && HERO_ROWS.indexOf(a.name) >= 0) return null;
+        var y = 2028 + LIVE.rng.int(0, 2), m = LIVE.rng.int(1, 12), d = Math.min(28, LIVE.rng.int(1, 30));
+        if (a.name === 'LP-L01W') { y = 2028; m = 6; d = 30; }
+        a.warrantyEnd = y + '-' + pad2(m) + '-' + pad2(d);
+        var ec = estateCounts();
+        return { kind: 'warranty', assetId: a.id, toast: { title: 'Warranty verified · ' + a.name, body: 'Active until ' + fmtDateStr(a.warrantyEnd) + ' · ' + a.supplier + ' · ' + ec.unknown + ' unknown remaining', severity: 'ok' } };
+      }
+      if (LIVE.ticks <= 3) return null;
+      var n = nowMs();
+      var b = ASSETS.filter(function (x) { return wStatus(x, n) === 'Expiring' && !(x.defectsOpen > 0); }).sort(function (p, q) { return ymd(p.warrantyEnd) - ymd(q.warrantyEnd); })[0];
+      if (!b) return null;
+      var e = b.warrantyEnd; b.warrantyEnd = (+e.slice(0, 4) + 3) + e.slice(4);
+      return { kind: 'warranty', assetId: b.id, toast: { title: 'Warranty extended · ' + b.name, body: 'New end date ' + fmtDateStr(b.warrantyEnd) + ' · ' + b.supplier, severity: 'ok' } };
+    } },
+    { w: 20, run: function () {
+      if (LIVE.ticks <= 3) return null;
+      var cands = ASSETS.filter(function (x) { return !x.hero && x.capex >= 5000 && x.replYear >= 2026 && x.replYear <= 2035; });
+      if (!cands.length) return null;
+      var a = cands[LIVE.rng.int(0, cands.length - 1)];
+      var f = (LIVE.rng.chance(0.5) ? 1 : -1) * (0.03 + 0.05 * LIVE.rng.next());
+      var before = a.capex, after = Math.max(5000, Math.round(before * (1 + f) / 500) * 500);
+      if (after === before) after = before + 500;
+      a.capex = after; a.replCost = Math.max(after, Math.round(a.replCost * (1 + f) / 500) * 500);
+      return { kind: 'quote', assetId: a.id, toast: { title: 'Replacement quote received · ' + a.name, body: 'CAPEX plan £' + fmtInt(before) + ' → £' + fmtInt(after) + ' · ' + a.replYear + ' plan updated', severity: 'info' } };
+    } },
+    { w: 10, run: function () {
+      if (LIVE.ticks <= 3) return null;
+      var n = nowMs();
+      var order = ['Lift 3', 'UPS-01'];
+      var cands = ASSETS.filter(function (x) { return wStatus(x, n) === 'Expiring' && !(x.defectsOpen > 0); })
+        .sort(function (p, q) { var ip = order.indexOf(p.name), iq = order.indexOf(q.name); ip = ip < 0 ? 99 : ip; iq = iq < 0 ? 99 : iq; return ip - iq || ymd(p.warrantyEnd) - ymd(q.warrantyEnd); });
+      var a = cands[0]; if (!a) return null;
+      a.defectsOpen = (a.defectsOpen || 0) + 1;
+      return { kind: 'defect', assetId: a.id, toast: { title: 'Defect logged under warranty · ' + a.name, body: 'Raise a claim before ' + fmtDateStr(a.warrantyEnd) + ' · ' + a.supplier, severity: 'warning' } };
+    } }
+  ];
+  function tick() {
+    LIVE.ticks++;
+    var x = LIVE.rng.next() * 100, i = 0, acc = 0;
+    for (i = 0; i < EVENTS.length; i++) { acc += EVENTS[i].w; if (x < acc) break; }
+    if (i >= EVENTS.length) i = EVENTS.length - 1;
+    for (var k = 0; k < EVENTS.length; k++) {
+      var ev = EVENTS[(i + k) % EVENTS.length].run();
+      if (ev) { bump(); LIVE.history.push(ev.kind); return ev; }
+    }
+    return null;
+  }
+
+  /* ---------------------------------------------------------------------
+     16. Public API
+     --------------------------------------------------------------------- */
+  return {
+    id: 'lifecycle',
+    zones: ZONES, groups: GROUPS, series: SERIES, years: YEARS, gradeWord: GRADE_WORD, gradeDesc: GRADE_DESC, gradeScore: GRADE_SCORE, warrantyLabel: W_LABEL,
+    norm: norm, zoneName: zoneName, zoneCompact: zoneCompact, siteLabel: siteLabel, scopeLabel: function (s) { return scopeLabel(norm(s)); },
+    areas: areas, summaryLine: summaryLine,
+    health: health, summary: summary, capex: capex, condition: condition, systems: systems, outlook: outlook, warrantyExpiries: warrantyExpiries,
+    floors: floors, due: due, risk: risk, warrantyStatus: warrantyStatus, insights: insights,
+    assets: assets, planLines: planLines, planSum: planSum, asset: asset, zoneAnalysis: zoneAnalysis, requestSurvey: requestSurvey,
+    fmt: { money: fmtM, date: fmtDateStr, remText: remText },
+    tick: tick, live: { tick: tick, intervalMs: [20000, 40000] },
+    version: function () { return LIVE.version; },
+    _internal: { ASSETS: ASSETS, ALLOW: ALLOW, CELLS: CELLS, DUE: DUE, ABY: ABY, byName: byName, remMonths: remMonths, wStatus: wStatus, LIVE: LIVE, bump: bump, zoneStats: zoneStats, SNAP: SNAP }
+  };
+  }
+  /* Lazy build: the register is generated on first access, not at page load, so loading this script does not delay the FDD
+     dashboard's boot. FDD.dashData.lifecycle behaves like the plain API object; '__built' / '__builds' are inspectable
+     without triggering a build (jsc harness). */
+  var real = null;
+  function api() { return real || (real = init()); }
+  FDD.dashData.lifecycle = (typeof Proxy === 'function') ? new Proxy({}, {
+    get: function (t, k) { if (k === '__built') return !!real; if (k === '__builds') return BUILDS; return api()[k]; },
+    has: function (t, k) { return k in api(); },
+    ownKeys: function () { return Reflect.ownKeys(api()); },
+    getOwnPropertyDescriptor: function (t, k) { var d = Object.getOwnPropertyDescriptor(api(), k); if (d) d.configurable = true; return d; }
+  }) : api();
+})();
+
+</script>
+<script>
+/* ---- dash/lifecycle.js ---- */
+/* ==========================================================================
+   FDD & Building Health — dash/lifecycle.js
+   Asset Lifecycle dashboard module (SPEC-lifecycle, CONTRACT-DASHBOARDS §3/§7): FDD.shell.register({...}).
+   Renders the 12 widgets of dash/lifecycle.html from FDD.dashData.lifecycle with FDD.kit + FDD.charts (combo, pie,
+   hbarRows, legend, tooltip): count-ups, hover tooltips, legend hover/toggle, drill-down lists (Lifecycle assets, CAPEX
+   plan lines), the Asset detail and Renewal analysis modals, area chips (shell), empty states, live flashes.
+   No range control (def.showRange = false): the dashboard is point-in-time condition + forward-looking forecasts.
+   ========================================================================== */
+(function () {
+  'use strict';
+  window.FDD = window.FDD || {};
+  var FDD = window.FDD;
+  if (!FDD.shell || typeof FDD.shell.register !== 'function') { try { console.error('[dash/lifecycle] FDD.shell is missing — load shell.js first'); } catch (e) { /* ignore */ } return; }
+  var C = FDD.dashCommon;
+
+  var H = {};                       // chart / table handles (created once, updated on every render)
+  var ST = { ctx: null, view: null, prev: {}, hiddenSeries: {} };
+
+  /* ---------------------------------------------------------------------
+     Helpers
+     --------------------------------------------------------------------- */
+  function D() { return FDD.dashData && FDD.dashData.lifecycle; }
+  function K() { return FDD.kit; }
+  function h() { return K().h.apply(null, arguments); }
+  function byId(id) { return document.getElementById(id); }
+  function isFn(f) { return typeof f === 'function'; }
+  function fmtInt(n) { return C.fmt.int(n); }
+  function plural(n, w, p) { return Math.abs(n) === 1 ? w : (p || w + 's'); }
+  function reduced() { return K() ? K().reduced() : false; }
+  /** £m with 2 dp, round half up on integer pounds (D-28): 1,840,000 → "£1.84m". */
+  function fmtM(p) { return '£' + (Math.round((+p || 0) / 10000) / 100).toFixed(2) + 'm'; }
+  /** Tooltip money: under £1m → "£235k" / "£67.5k", else "£2.83m". */
+  function fmtK(p) {
+    p = +p || 0;
+    if (Math.abs(p) >= 1000000) return fmtM(p);
+    var k = Math.round(p / 100) / 10;
+    return '£' + (Math.round(k) === k ? String(k) : k.toFixed(1)) + 'k';
+  }
+  function fmtGBP(p) { return p == null ? '—' : '£' + fmtInt(p); }
+  function fmtAxis(v) { return v === 0 ? '0' : (v / 1000000).toFixed(1) + 'M'; }
+  function fmtAxis1(v) { return Math.round(v / 1000000) + 'M'; }
+  function token(name) { return FDD.charts && isFn(FDD.charts.token) ? FDD.charts.token(name) : ''; }
+  /** Lifecycle tokens live on the view (not :root) — resolve them there for canvas charts. */
+  function lcColor(name, fallback) {
+    var v = '';
+    try { if (ST.view) v = getComputedStyle(ST.view).getPropertyValue(name).trim(); } catch (e) { v = ''; }
+    return v || fallback || token(name) || '#2B85FF';
+  }
+  function tipShow(content, x, y) { if (FDD.charts && FDD.charts.tooltip && content) FDD.charts.tooltip.show(content, x, y); }
+  function tipHide() { if (FDD.charts && FDD.charts.tooltip) FDD.charts.tooltip.hide(); }
+  /** White data tooltip on hover / focus for a DOM element. contentFn(el) → {title, rows, foot} | string. */
+  function hoverTip(el, contentFn) {
+    if (!el || el._lcTip) return;
+    el._lcTip = true;
+    function show(e) { var c = contentFn(el); if (!c) { tipHide(); return; } if (e && e.clientX != null) tipShow(c, e.clientX, e.clientY); else { var r = el.getBoundingClientRect(); tipShow(c, r.left + Math.min(r.width / 2, 200), r.bottom); } }
+    el.addEventListener('pointerenter', show);
+    el.addEventListener('pointermove', show);
+    el.addEventListener('pointerleave', tipHide);
+    el.addEventListener('focus', function () { show(null); });
+    el.addEventListener('blur', tipHide);
+  }
+  function activate(el, fn) {
+    if (!el || el._lcAct) return;
+    el._lcAct = true;
+    el.addEventListener('click', function (e) { if (e.target.closest('.select') && el.contains(e.target.closest('.select'))) return; fn(e); });
+    el.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); fn(e); } });
+  }
+  function card(wid) { return ST.ctx ? ST.ctx.card(wid) : null; }
+  function empty(wid, text, link) { var c = card(wid); if (c) K().empty(c, text || null, link); }
+  function setText(el, t) { if (el && el.textContent !== String(t)) el.textContent = String(t); }
+  function changed(key, val) { var s = JSON.stringify(val), was = ST.prev[key]; ST.prev[key] = s; return was != null && was !== s; }
+  function siteLabel(siteId) { return siteId === 's1' ? '38BY London (HQ)' : (siteId === 's2' ? 'Warehouse' : '38BY London'); }
+  function zoneName(id) { return D().zoneName(id); }
+  function srTable(id, head, rows) {
+    var t = byId(id); if (!t) return;
+    K().clear(t);
+    t.appendChild(h('thead', null, h('tr', null, head.map(function (x) { return h('th', { scope: 'col' }, x); }))));
+    t.appendChild(h('tbody', null, rows.map(function (r) { return h('tr', null, r.map(function (x) { return h('td', null, String(x)); })); })));
+  }
+  function closeTop() { if (FDD.ui && isFn(FDD.ui.closeTop)) FDD.ui.closeTop(); }
+  var GRADE_PILL = { A: 'pill--green', B: 'lc-pill-b', C: 'pill--amber', D: 'pill--red' };
+  /* Pill sizing / the B colours are inline so the same pill renders inside FDD's generic modal (outside the view). */
+  var PILL_STYLE = { minWidth: '22px', height: '20px', padding: '0 7px', borderRadius: '10px', fontSize: '11px', fontWeight: '600' };
+  var PILL_B = { background: 'color-mix(in srgb, #7FCE81 24%, var(--bg-card))', color: 'color-mix(in srgb, #3FA854 88%, var(--text-primary))' };
+  function condPill(g, tip) {
+    var el = h('span', { 'class': 'pill lc-pill-cond ' + (GRADE_PILL[g] || 'pill--grey'), style: Object.assign({}, PILL_STYLE, g === 'B' ? PILL_B : {}) }, g || '—');
+    if (tip) { el.setAttribute('tabindex', '-1'); hoverTip(el, function () { return { title: g + ' · ' + D().gradeWord[g], rows: [{ label: D().gradeDesc[g] }] }; }); }
+    return el;
+  }
+  function remClass(g) { return g === 'D' ? 'lc-rem lc-rem--d' : (g === 'C' ? 'lc-rem lc-rem--c' : 'lc-rem'); }
+  function remStyle(g) { return { color: g === 'D' ? 'var(--sev-critical)' : (g === 'C' ? 'var(--amber)' : 'var(--text-secondary)') }; }
+  function shake(el) { if (!el || reduced()) return; el.classList.remove('lc-shake'); void el.offsetWidth; el.classList.add('lc-shake'); setTimeout(function () { el.classList.remove('lc-shake'); }, 200); }
+  function patchChart(handle, fn) {
+    if (!handle || !isFn(handle.chart)) return;
+    var ch = handle.chart();
+    if (!ch) return;
+    try { fn(ch); ch.update('none'); } catch (e) { /* chart not ready */ }
+  }
+
+  /* ---------------------------------------------------------------------
+     Drill-downs (SPEC §3.0) — Lifecycle assets list, Asset detail, Plan drill, Renewal analysis
+     --------------------------------------------------------------------- */
+  function scopeChips(scope) {
+    var c = [];
+    if (scope && scope.siteId && scope.siteId !== 'all') c.push({ key: 'site', label: 'Site', value: siteLabel(scope.siteId) });
+    if (scope && scope.areaId && scope.areaId !== 'all') c.push({ key: 'area', label: 'Area', value: zoneName(scope.areaId) });
+    return c;
+  }
+  function scopeFilter(scope) { var f = {}; if (scope && scope.siteId && scope.siteId !== 'all') f.site = scope.siteId; if (scope && scope.areaId && scope.areaId !== 'all') f.area = scope.areaId; return f; }
+  function searchBox(state, placeholder) {
+    if (!state.node) {
+      var input = h('input', { type: 'search', 'class': 'search-input', placeholder: placeholder, 'aria-label': placeholder, value: state.q || '' });
+      input.addEventListener('input', function () {
+        state.q = input.value.trim(); state.typing = true;
+        if (FDD.ui && isFn(FDD.ui.refresh)) FDD.ui.refresh();
+      });
+      state.input = input;
+      state.node = h('div', { 'class': 'lc-search', style: { marginBottom: '10px' } }, h('span', { 'class': 'search' }, input));
+    }
+    if (state.typing) setTimeout(function () { try { state.input.focus({ preventScroll: true }); var l = state.input.value.length; state.input.setSelectionRange(l, l); } catch (e) { /* ignore */ } }, 0);
+    return state.node;
+  }
+  var W_RANK = { Expired: 1, Expiring: 2, Active: 3, Unknown: 4 };
+  /** openAssets({chips:[{key,label,value}], filter, sort, opener}) — "Lifecycle assets" (kit.list, key lc-assets). */
+  function openAssets(o) {
+    o = o || {};
+    var search = { q: '' };
+    K().list({
+      key: 'lc-assets', title: 'Lifecycle assets', chips: o.chips || [], filter: o.filter || {}, opener: o.opener || null, unit: 'asset',
+      sort: o.sort || { key: 'replYear', dir: 'asc' },
+      query: function (f) { return D().assets(Object.assign({}, f, { q: search.q || null })); },
+      summary: function () { return searchBox(search, 'Search asset, type or area'); },
+      columns: [
+        { key: 'name', label: 'Asset', cls: 'cell-asset' },
+        { key: 'type', label: 'Type' },
+        { key: 'system', label: 'System' },
+        { key: 'area', label: 'Area' },
+        { key: 'grade', label: 'Condition', sort: function (r) { return 'DCBA'.indexOf(r.grade); }, render: function (r) { return condPill(r.grade); } },
+        { key: 'remMonths', label: 'Remaining life', sort: function (r) { return r.remMonths; }, render: function (r) { return h('span', { 'class': remClass(r.grade), style: remStyle(r.grade) }, r.remText); } },
+        { key: 'replYear', label: 'Replacement year', sort: function (r) { return r.replYearRaw * 10000 + r.remMonths + 5000; }, render: function (r) { return r.replYear == null ? 'Beyond 2050' : String(r.replYear); } },
+        { key: 'capex', label: 'CAPEX plan', sort: function (r) { return r.capex || 0; }, dir: 'desc', render: function (r) { return r.capex == null ? '—' : fmtGBP(r.capex); } },
+        { key: 'replCost', label: 'Est. cost', sort: function (r) { return r.replCost; }, dir: 'desc', render: function (r) { return fmtGBP(r.replCost); } },
+        { key: 'warranty', label: 'Warranty', sort: function (r) { return r.warrantyEndMs == null ? 9e15 : r.warrantyEndMs; }, render: function (r) { return r.warrantyText; } }
+      ],
+      onRow: function (r, tr) { openAsset(r.id, tr); },
+      emptyText: 'No assets match these filters.'
+    });
+  }
+  function detailRow(k, v) { return [h('div', { 'class': 'detail-key' }, k), h('div', { 'class': 'detail-val' }, v == null || v === '' ? '—' : v)]; }
+  /** Asset detail (kit.modal): two-column grid + Open in FDD / Request survey / Done. */
+  function openAsset(id, opener) {
+    var a = D().asset(id);
+    if (!a) { K().toast({ title: 'Asset not found', severity: 'system' }); return; }
+    var st = { body: null, foot: null };
+    function build() {
+      var x = D().asset(id);
+      K().clear(st.body); K().clear(st.foot);
+      var prev = x.prevGrade === x.grade ? x.prevGrade + ' · No change' : x.prevGrade;
+      var rem = x.remMonths < 0 ? 'Past end of life (' + x.eolText + ')' : x.remMonths + ' ' + plural(x.remMonths, 'month') + ' (end of life ' + x.eolText + ')';
+      var grid = h('div', { 'class': 'detail-grid lc-detail', style: { gridTemplateColumns: '200px minmax(0, 1fr)' } }, [
+        detailRow('Condition', h('span', { 'class': 'lc-detail-cond', style: { display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' } }, condPill(x.grade), ' ' + x.grade + ' · ' + x.gradeWord + ' — ' + x.gradeDesc)),
+        detailRow('Previous grade (2025 survey)', prev),
+        detailRow('Survey', x.surveyText),
+        detailRow('Installed', String(x.installYear)),
+        detailRow('Expected life', x.expectedLife + ' years'),
+        detailRow('Remaining life', h('span', { 'class': remClass(x.grade), style: remStyle(x.grade) }, rem)),
+        detailRow('Planned replacement', x.replYear == null ? 'Beyond 2050' : String(x.replYear)),
+        detailRow('CAPEX plan', x.capex == null ? '— (beyond 2050)' : fmtGBP(x.capex) + ' · ' + x.basis),
+        detailRow('Like-for-like replacement', fmtGBP(x.replCost)),
+        detailRow('Warranty', x.warrantyDetail),
+        detailRow('Open defects', x.defects > 0 ? String(x.defects) : 'None'),
+        detailRow('Risk group', x.riskGroup + ' · score ' + x.riskScore),
+        detailRow('Supplier', x.supplier)
+      ]);
+      st.body.appendChild(grid);
+      if (x.fddTag) st.foot.appendChild(h('button', { type: 'button', 'class': 'btn btn--outline', onclick: function (e) { K().openAsset(x.fddTag, e.currentTarget); } }, 'Open in FDD'));
+      st.foot.appendChild(h('button', { type: 'button', 'class': 'btn btn--outline', onclick: function () {
+        var r = D().requestSurvey(id);
+        K().toast({ title: 'Survey requested · ' + x.name, body: 'Condition surveyor notified · ' + x.location, severity: 'info' });
+        if (r && r.changed) { if (FDD.shell) FDD.shell.render({ flash: true }); build(); }
+      } }, 'Request survey'));
+      st.foot.appendChild(h('button', { type: 'button', 'class': 'btn btn--primary', onclick: closeTop }, 'Done'));
+    }
+    var sub = a.type + ' · ' + a.group + ' · ' + a.location + (a.servesZoneId !== a.zoneId ? ' · serves ' + a.area : '');
+    K().modal({ title: a.name, subtitle: sub, opener: opener || null,
+      reopen: function () { openAsset(id, opener); },
+      build: function (body, foot) { st.body = body; st.foot = foot; build(); } });
+  }
+  /** Plan drill (kit.drill): one row per plan line (asset capex lines + minor works allowances). */
+  function openPlan(title, filter, opener, sort) {
+    var lines = D().planLines(filter);
+    var multiYear = (filter.to || 2050) !== (filter.from || 2026);
+    var total = lines.reduce(function (s, l) { return s + l.capex; }, 0);
+    var cols = [
+      { key: 'name', label: 'Asset', cls: 'cell-asset', render: function (l) { return l.kind === 'asset' ? l.name : h('span', { 'class': 'lc-allow', style: { color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' } }, l.name); } },
+      { key: 'system', label: 'System' },
+      { key: 'area', label: 'Area' },
+      { key: 'grade', label: 'Condition', sort: function (l) { return l.grade ? 'DCBA'.indexOf(l.grade) : -1; }, render: function (l) { return l.grade ? condPill(l.grade) : '—'; } },
+      { key: 'basis', label: 'Basis' }
+    ];
+    if (multiYear) cols.push({ key: 'year', label: 'Year', sort: function (l) { return l.year; } });
+    cols.push({ key: 'capex', label: 'CAPEX plan', sort: function (l) { return l.capex; }, dir: 'desc', render: function (l) { return fmtGBP(l.capex); } });
+    K().drill(title, lines, cols, {
+      key: 'lc-plan', unit: 'line', opener: opener || null, sort: sort || { key: 'capex', dir: 'desc' },
+      count: function (rows) { return fmtInt(rows.length) + ' plan ' + plural(rows.length, 'line'); },
+      summary: function (rows) {
+        var assets = rows.filter(function (l) { return l.kind === 'asset'; }), allow = rows.filter(function (l) { return l.kind !== 'asset'; });
+        var sa = assets.reduce(function (s, l) { return s + l.capex; }, 0), sl = allow.reduce(function (s, l) { return s + l.capex; }, 0);
+        return h('div', { 'class': 'summary-strip lc-summary-strip', style: { display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '10px', fontSize: '13px', color: 'var(--text-secondary)' } },
+          h('span', null, fmtInt(assets.length) + ' ' + plural(assets.length, 'asset') + ' · ' + fmtGBP(sa) + ' · allowances ' + fmtGBP(sl)),
+          h('strong', { style: { color: 'var(--text-primary)' } }, 'Total · ' + fmtGBP(sa + sl)));
+      },
+      onRow: function (l, tr) { if (l.kind === 'asset') openAsset(l.assetId, tr); else K().toast({ title: l.name + ' · ' + l.area, body: l.system + ' · ' + l.year + ' · ' + fmtGBP(l.capex) + ' (not tied to one asset)', severity: 'info' }); },
+      emptyText: total === 0 ? 'No plan lines for this selection.' : 'No plan lines match these filters.'
+    });
+  }
+  /** Modal tables live outside the view: right-align the cells / headers marked cell-right inline. */
+  function alignRight(tbody) {
+    var t = tbody && tbody.closest ? tbody.closest('table') : null; if (!t) return;
+    Array.prototype.forEach.call(t.querySelectorAll('.cell-right'), function (c) { c.style.textAlign = 'right'; });
+    Array.prototype.forEach.call(t.querySelectorAll('.cell-strong'), function (c) { c.style.fontWeight = '600'; c.style.color = 'var(--text-primary)'; });
+  }
+  /** Renewal analysis (kit.modal) for a zone: system split 2026–2030 / 2031–2035 + largest items. */
+  function openAnalysis(zoneId, opener) {
+    var z = D().zoneAnalysis(zoneId);
+    K().modal({ title: z.name + ' · 10-year renewal analysis', subtitle: fmtM(z.cost10) + ' planned 2026–2035 · ' + z.due10 + ' ' + plural(z.due10, 'asset') + ' · avg condition ' + (z.avg == null ? '—' : z.avg.toFixed(1)), opener: opener || null,
+      reopen: function () { openAnalysis(zoneId, opener); },
+      build: function (body, foot) {
+        var t1 = h('table', { 'class': 'table table--compact lc-table lc-modal-table' });
+        body.appendChild(h('div', { 'class': 'lc-modal-scroll' }, t1));
+        var rows = z.rows.slice();
+        K().table(t1, { ariaLabel: 'Renewal by system', rows: rows, rowKey: function (r) { return r.key; },
+          columns: [
+            { key: 'system', label: 'System', cls: 'cell-strong' },
+            { key: 'y5', label: '2026–2030', cls: 'cell-right', thCls: 'cell-right', render: function (r) { return fmtK(r.y5); } },
+            { key: 'y10b', label: '2031–2035', cls: 'cell-right', thCls: 'cell-right', render: function (r) { return fmtK(r.y10b); } },
+            { key: 'total', label: '10-year', cls: 'cell-right cell-strong', thCls: 'cell-right', render: function (r) { return fmtM(r.total); } },
+            { key: 'assets', label: 'Assets', cls: 'cell-right', thCls: 'cell-right', tip: null, render: function (r) { var s = h('span', null, String(r.assets)); s.setAttribute('title', r.assetNames.join(', ')); return s; } }
+          ],
+          onRender: alignRight,
+          onRow: function (r, tr) { openPlan('CAPEX plan · 2026–2035 · ' + z.name + ' · ' + r.system, { zone: zoneId, group: r.key, from: 2026, to: 2035 }, tr); } });
+        var tb = t1.querySelector('tbody');
+        alignRight(tb);
+        if (tb) tb.appendChild(h('tr', { 'class': 'lc-total-row', style: { fontWeight: '600' } }, h('td', { 'class': 'cell-strong' }, 'Total'), h('td', { 'class': 'cell-right cell-strong' }, fmtK(z.totals.y5)),
+          h('td', { 'class': 'cell-right cell-strong' }, fmtK(z.totals.y10b)), h('td', { 'class': 'cell-right cell-strong' }, fmtM(z.totals.total)), h('td', { 'class': 'cell-right cell-strong' }, String(z.totals.assets))));
+        alignRight(tb);
+        body.appendChild(h('h3', { 'class': 'lc-modal-h', style: { fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: '18px 0 8px' } }, 'Largest items'));
+        var t2 = h('table', { 'class': 'table table--compact lc-table lc-modal-table' });
+        body.appendChild(h('div', { 'class': 'lc-modal-scroll' }, t2));
+        K().table(t2, { ariaLabel: 'Largest items', rows: z.top,
+          columns: [
+            { key: 'name', label: 'Asset', cls: 'cell-strong' }, { key: 'type', label: 'Type' }, { key: 'replYear', label: 'Year' },
+            { key: 'capex', label: 'CAPEX plan', cls: 'cell-right', thCls: 'cell-right', render: function (r) { return fmtGBP(r.capex); } }
+          ],
+          onRender: alignRight,
+          onRow: function (r, tr) { openAsset(r.id, tr); } });
+        alignRight(t2.querySelector('tbody'));
+        foot.appendChild(h('button', { type: 'button', 'class': 'btn btn--outline', onclick: function (e) {
+          openAssets({ chips: [{ key: 'area', label: 'Area', value: z.name }, { key: 'due', label: 'Due', value: '2026–2035' }], filter: { area: zoneId, due: 'y10' }, opener: e.currentTarget });
+        } }, 'View assets'));
+        foot.appendChild(h('button', { type: 'button', 'class': 'btn btn--primary', onclick: closeTop }, 'Done'));
+      } });
+  }
+  /** "How the index is calculated" explainer (small modal, FDD score-popover content). */
+  function openHealthExplainer() {
+    var d = H.health; if (!d) return;
+    K().modal({ title: 'How the index is calculated', subtitle: 'Asset Health Index ' + d.score + ' / 100 · ' + d.band, size: 'xs', opener: card('lcHealth'),
+      build: function (body, foot) {
+        var list = h('div', { 'class': 'score-rows lc-score-rows' });
+        ['Each asset scores by its condition grade: A 100 · B 85 · C 60 · D 25',
+          'Index = mean score of the ' + d.n + ' assets in the register (pending surveys keep their 2025 grade)',
+          '80+ Good · 65–79 Fair · below 65 Poor'].forEach(function (t) { list.appendChild(h('p', { 'class': 'lc-score-line', style: { fontSize: '14px', lineHeight: '20px', color: 'var(--text-secondary)', margin: '0 0 8px' } }, t)); });
+        body.appendChild(list);
+        body.appendChild(h('button', { type: 'button', 'class': 'link-btn', onclick: function (e) { openAssets({ opener: e.currentTarget, sort: { key: 'grade', dir: 'desc' } }); } }, 'View condition profile'));
+        foot.appendChild(h('button', { type: 'button', 'class': 'btn btn--primary', onclick: closeTop }, 'Done'));
+      } });
+  }
+
+  /* ---------------------------------------------------------------------
+     Renderers (SPEC §3) — R[widgetId](opts, scope)
+     --------------------------------------------------------------------- */
+  var R = {};
+  var RING_C = 2 * Math.PI * 53;
+  var BAND_COLOR = { Good: ['--green', '--lc-ring-rest'], Fair: ['--amber', '--lc-ring-rest-fair'], Poor: ['--sev-critical', '--lc-ring-rest-poor'] };
+
+  /* 3.1 Asset Health Index */
+  R.lcHealth = function (opts, scope) {
+    var d = D().health(scope); H.health = d;
+    var c = card('lcHealth');
+    var bc = BAND_COLOR[d.band];
+    var arc = byId('lc-health-arc'), rest = byId('lc-health-rest');
+    arc.style.stroke = 'var(' + bc[0] + ')'; rest.style.stroke = 'var(' + bc[1] + ')';
+    arc.style.strokeDasharray = RING_C.toFixed(2) + ' ' + RING_C.toFixed(2);
+    var off = RING_C * (1 - d.score / 100);
+    if (opts.initial && !reduced()) { arc.style.transition = 'none'; arc.style.strokeDashoffset = RING_C.toFixed(2); void arc.getBoundingClientRect(); arc.style.transition = ''; }
+    requestAnimationFrame(function () { arc.style.strokeDashoffset = off.toFixed(2); });
+    if (reduced()) arc.style.strokeDashoffset = off.toFixed(2);
+    K().countUp(byId('lc-health-value'), d.score, function (v) { return String(Math.round(v)); }, { fromZero: !!opts.initial });
+    var bandEl = byId('lc-health-band');
+    setText(bandEl, d.band); bandEl.style.color = 'var(' + bc[0] + ')';
+    var arrow = byId('lc-health-arrow'), pts = byId('lc-health-points'), cap = byId('lc-health-caption');
+    var dl = byId('lc-health-delta');
+    dl.className = 'lc-health-delta ' + (d.delta < 0 ? 'is-bad' : (d.delta > 0 ? 'is-good' : 'is-flat'));
+    setText(arrow, d.delta < 0 ? '↓' : (d.delta > 0 ? '↑' : '→'));
+    setText(pts, d.delta === 0 ? 'No change' : Math.abs(d.delta) + ' ' + plural(Math.abs(d.delta), 'point'));
+    setText(cap, d.delta === 0 ? 'since last survey' : 'vs last survey');
+    if (c) c.setAttribute('aria-label', 'Asset Health Index ' + d.score + ' out of 100, ' + d.band + ', ' + (d.delta === 0 ? 'no change since last survey' : (d.delta < 0 ? 'down ' : 'up ') + Math.abs(d.delta) + ' ' + plural(Math.abs(d.delta), 'point') + ' vs last survey'));
+    if (opts.flash && changed('health', [d.score, d.band])) K().flash(c); else changed('health', [d.score, d.band]);
+  };
+  function healthTip() {
+    var d = H.health; if (!d) return null;
+    var g = D().gradeWord, s = D().gradeScore;
+    return { title: 'Asset Health Index ' + d.score + ' / 100 · ' + d.band,
+      rows: ['A', 'B', 'C', 'D'].map(function (k) { return { color: token({ A: '--green', B: '--green', C: '--sev-medium', D: '--sev-critical' }[k]), label: k + ' · ' + g[k], value: d.counts[k] + ' × ' + s[k] }; }),
+      foot: 'Mean of ' + d.n + ' condition scores · last survey ' + d.prev + ' (Sep 2025)' };
+  }
+
+  /* 3.2 Lifecycle summary */
+  function tileEl(key) { return ST.view ? ST.view.querySelector('.lc-tile[data-tile="' + key + '"]') : null; }
+  function subLine(el, parts) {
+    K().clear(el);
+    parts.forEach(function (p) { if (p) el.appendChild(typeof p === 'string' ? document.createTextNode(p) : p); });
+  }
+  function arrowSpan(dir, cls) { return h('span', { 'class': 'lc-arrow ' + cls, 'aria-hidden': 'true' }, dir); }
+  function pctSub(el, pct) {
+    if (pct === 0) subLine(el, [arrowSpan('→', 'lc-flat'), h('span', { 'class': 'lc-flat' }, 'No change'), ' vs last year']);
+    else if (pct < 0) subLine(el, [arrowSpan('↓', 'lc-good'), h('span', { 'class': 'lc-good' }, '- ' + Math.abs(pct) + '%'), ' vs last year']);
+    else subLine(el, [arrowSpan('↑', 'lc-bad'), h('span', { 'class': 'lc-bad' }, '+ ' + pct + '%'), ' vs last year']);
+  }
+  R.lcSummary = function (opts, scope) {
+    var s = D().summary(scope); H.summary = s;
+    var fz = { fromZero: !!opts.initial };
+    // 1 · surveyed
+    var sv = byId('lc-tile-surveyed-value');
+    if (!sv._lc) { K().clear(sv); sv._lc = { n: h('span', { 'class': 'lc-num' }), rest: h('span', { 'class': 'tile-rest lc-tile-rest' }) }; sv.appendChild(sv._lc.n); sv.appendChild(sv._lc.rest); }
+    K().countUp(sv._lc.n, s.surveyed, function (v) { return fmtInt(v); }, fz);
+    setText(sv._lc.rest, ' / ' + fmtInt(s.total));
+    var pc = s.surveyPct >= 95 ? 'lc-good' : (s.surveyPct >= 80 ? 'lc-warn' : 'lc-bad');
+    subLine(byId('lc-tile-surveyed-sub'), [arrowSpan('↑', 'lc-good'), h('span', { 'class': pc }, s.surveyPct + '%'), ' complete']);
+    // 2 · poor / EOL
+    var pv = byId('lc-tile-poor-value');
+    pv.className = 'lc-tile-value' + (s.poorEol > 0 ? ' lc-bad' : '');
+    K().countUp(pv, s.poorEol, function (v) { return fmtInt(v); }, fz);
+    if (s.poorEol > 0) subLine(byId('lc-tile-poor-sub'), [h('span', { 'class': 'lc-bang', 'aria-hidden': 'true' }), h('span', { 'class': 'lc-bad' }, 'Condition C/D')]);
+    else subLine(byId('lc-tile-poor-sub'), [h('span', { 'class': 'lc-muted' }, 'None at C/D')]);
+    // 3 · warranties expiring
+    K().countUp(byId('lc-tile-expiring-value'), s.expiring, function (v) { return fmtInt(v); }, fz);
+    var ed = s.expiringDelta, es = byId('lc-tile-expiring-sub');
+    if (ed > 0) subLine(es, [arrowSpan('↑', 'lc-warn'), h('span', { 'class': 'lc-warn' }, '+ ' + ed), ' vs last year']);
+    else if (ed < 0) subLine(es, [arrowSpan('↓', 'lc-good'), h('span', { 'class': 'lc-good' }, '- ' + Math.abs(ed)), ' vs last year']);
+    else subLine(es, [arrowSpan('→', 'lc-flat'), h('span', { 'class': 'lc-flat' }, 'No change'), ' vs last year']);
+    // 4–6 · CAPEX horizons
+    s.horizons.forEach(function (hz) {
+      K().countUp(byId('lc-tile-' + hz.key + '-value'), hz.value, fmtM, fz);
+      pctSub(byId('lc-tile-' + hz.key + '-sub'), hz.pct);
+    });
+    if (opts.flash) {
+      [['surveyed', s.surveyed], ['poor', s.poorEol], ['expiring', s.expiring], ['y5', s.horizons[0].value], ['y10', s.horizons[1].value], ['y25', s.horizons[2].value]].forEach(function (x) {
+        if (changed('tile:' + x[0], x[1])) K().flash(tileEl(x[0]));
+      });
+    } else [['surveyed', s.surveyed], ['poor', s.poorEol], ['expiring', s.expiring], ['y5', s.horizons[0].value], ['y10', s.horizons[1].value], ['y25', s.horizons[2].value]].forEach(function (x) { changed('tile:' + x[0], x[1]); });
+  };
+  function summaryTip(key) {
+    var s = H.summary; if (!s) return null;
+    if (key === 'surveyed') return s.surveyed + ' of ' + s.total + ' surveyed in the 2026 cycle · ' + s.pending + ' pending' + (s.pending ? ' (due by ' + s.pendingDue + ')' : '');
+    if (key === 'poor') return s.poorD + ' grade D · ' + s.poorCPast + ' grade C past expected life';
+    if (key === 'expiring') return s.expiring + ' ' + plural(s.expiring, 'warranty', 'warranties') + ' end by ' + s.expiringBy + ' · ' + s.expiringPrev + ' a year ago';
+    var hz = s.horizons.filter(function (x) { return x.key === key; })[0];
+    return hz ? hz.assets + ' ' + plural(hz.assets, 'asset') + ' · 2026–' + hz.to + ' · last year ' + fmtM(hz.prev) : null;
+  }
+  function summaryClick(key, el) {
+    var sc = ST.ctx.scopeFor('lcSummary'), base = scopeFilter(sc), chips = scopeChips(sc);
+    if (key === 'surveyed') openAssets({ chips: chips.concat([{ key: 'survey', label: 'Survey', value: 'Pending' }]), filter: Object.assign(base, { survey: 'Pending' }), opener: el });
+    else if (key === 'poor') openAssets({ chips: chips.concat([{ key: 'cond', label: 'Condition', value: 'Poor / end-of-life' }]), filter: Object.assign(base, { cond: 'POOR' }), opener: el });
+    else if (key === 'expiring') openAssets({ chips: chips.concat([{ key: 'warranty', label: 'Warranty', value: 'Expiring < 12 months' }]), filter: Object.assign(base, { warranty: 'Expiring' }), opener: el, sort: { key: 'warranty', dir: 'asc' } });
+    else { var to = key === 'y5' ? 2030 : (key === 'y10' ? 2035 : 2050); openPlan('CAPEX plan · 2026–' + to, { site: sc.siteId, from: 2026, to: to }, el, { key: 'year', dir: 'asc' }); }
+  }
+
+  /* 3.3 Replacement Schedule & CAPEX Forecast */
+  var SERIES_COLOR = { hvac: '--blue', elec: '--sev-medium', fls: '--sev-critical', vt: null, other: '--grey-segment' };
+  function seriesColor(key) { return key === 'vt' ? lcColor('--lc-purple', '#A845FC') : SERIES_COLOR[key]; }
+  function niceMax(v) { var p = Math.pow(10, Math.floor(Math.log10(v))); var n = v / p; var m = n <= 1.2 ? 1.2 : (n <= 1.5 ? 1.5 : (n <= 2 ? 2 : (n <= 3 ? 3 : (n <= 6 ? 6 : 12)))); return m * p; }
+  function capexSpec(d) {
+    var yMax = d.maxStack <= 1200000 ? 1200000 : niceMax(d.maxStack * 1.35), y1Max = d.total <= 6000000 ? 6000000 : niceMax(d.total * 1.2);
+    var series = d.seriesMeta.map(function (m) {
+      return { key: m.key, label: m.label, type: 'bar', stack: 'capex', data: d.series[m.key].slice(), color: seriesColor(m.key), barPercentage: 0.62, categoryPercentage: 0.9, borderRadius: 0,
+        valueFormat: function (v) { return fmtK(v); }, hidden: !!ST.hiddenSeries[m.key] };
+    });
+    series.push({ key: 'cum', label: 'Cumulative (right axis)', type: 'line', axis: 'y1', data: d.empty ? d.cumulative.map(function () { return null; }) : d.cumulative.slice(), color: lcColor('--lc-navy', '#1C2461'),
+      width: 2, tension: 0, points: true, pointRadius: 3.5, order: 0, valueFormat: function (v) { return fmtK(v); }, hidden: !!ST.hiddenSeries.cum });
+    return {
+      labels: d.labels, series: series, tooltip: 'index', crosshair: false, clickIndex: true,
+      axes: { x: { grid: true, line: true }, y: { min: 0, max: yMax, step: yMax / 6, title: 'Replacement cost (£)', format: fmtAxis }, y1: { min: 0, max: y1Max, step: y1Max / 6, title: 'Cumulative cost (£)', format: fmtAxis1, position: 'right', grid: false } },
+      tooltipFormat: function (i) { return capexTip(i); },
+      onClick: function (i, key) { capexClick(i, key); },
+      ariaLabel: 'Replacement schedule and CAPEX forecast 2026 to 2035: ' + fmtM(d.total) + ' over 10 years, cumulative to ' + fmtM(d.cumulative[d.cumulative.length - 1])
+    };
+  }
+  function capexTip(i) {
+    var d = H.capexData; if (!d || d.empty) return null;
+    var rows = [], tot = 0;
+    d.seriesMeta.slice().reverse().forEach(function (m) {
+      if (ST.hiddenSeries[m.key]) return;
+      var v = d.series[m.key][i]; tot += v;
+      rows.push({ color: token(seriesColor(m.key)) || seriesColor(m.key), label: m.label, value: fmtK(v) });
+    });
+    rows.push({ sep: true });
+    rows.push({ label: 'Total', value: fmtK(tot) });
+    return { title: d.labels[i] + ' · CAPEX plan', rows: rows, foot: 'Cumulative 2026–' + d.labels[i] + ': ' + fmtM(d.cumulative[i]) + ' · ' + d.due[i] + ' ' + plural(d.due[i], 'asset') + ' due' };
+  }
+  function capexClick(i, key) {
+    var d = H.capexData; if (!d || d.empty) return;
+    var y = d.years[i], sc = ST.ctx.scopeFor('lcCapex');
+    var f = { site: sc.siteId, from: y, to: y };
+    var title = 'CAPEX plan · ' + y;
+    if (key && key !== 'cum') { f.chartKey = key; title += ' · ' + d.seriesMeta.filter(function (m) { return m.key === key; })[0].label; }
+    openPlan(title, f, byId('lc-capex-chart'));
+  }
+  /** Tick fonts as the mock; on phones (< 600 px) the rotated axis titles are hidden (SPEC §2). Re-applied on resize. */
+  var PHONE_MQ = (typeof window.matchMedia === 'function') ? window.matchMedia('(max-width: 599px)') : null;
+  function capexPhone() {
+    var phone = !!(PHONE_MQ && PHONE_MQ.matches);
+    patchChart(H.capex, function (ch) {
+      var sc = ch.options.scales || {};
+      Object.keys(sc).forEach(function (id) {
+        if (sc[id] && sc[id].ticks) sc[id].ticks.font = Object.assign({}, sc[id].ticks.font || {}, { size: id === 'x' ? 13 : 12 });
+        if (id !== 'x' && sc[id] && sc[id].title) sc[id].title.display = !phone;
+      });
+    });
+  }
+  if (PHONE_MQ) { try { (PHONE_MQ.addEventListener ? PHONE_MQ.addEventListener.bind(PHONE_MQ, 'change') : PHONE_MQ.addListener.bind(PHONE_MQ))(capexPhone); } catch (e) { /* ignore */ } }
+  R.lcCapex = function (opts, scope) {
+    var d = D().capex(scope); H.capexData = d;
+    var spec = capexSpec(d);
+    if (!H.capex || opts.theme) {
+      if (H.capex && isFn(H.capex.destroy)) H.capex.destroy();
+      H.capex = FDD.charts.combo(byId('lc-capex-chart'), spec);
+    } else H.capex.update(spec);
+    capexPhone();
+    // empty state on the plot (Warehouse)
+    var ee = byId('lc-capex-empty');
+    ee.hidden = !d.empty;
+    if (d.empty) {
+      setText(byId('lc-capex-empty-title'), 'No replacements planned for ' + d.scopeName + ' in 2026–2035');
+      setText(byId('lc-capex-empty-sub'), d.firstLateYear ? 'First ' + d.scopeName + ' replacements fall in ' + d.firstLateYear + '.' : 'No replacements fall within the 25-year horizon.');
+    }
+    // legend
+    var items = d.seriesMeta.map(function (m) { return { key: m.key, label: m.label, color: token(seriesColor(m.key)) || seriesColor(m.key), shape: 'square' }; });
+    items.push({ key: 'cum', label: 'Cumulative (right axis)', color: lcColor('--lc-navy', '#1C2461'), shape: 'line' });
+    if (!H.capexLegend || opts.theme) {
+      var host = byId('lc-capex-legend');
+      H.capexLegend = FDD.charts.legend(host, {
+        layout: 'inline', items: items,
+        onHover: function (key) { if (H.capex) H.capex.highlight(key); },
+        onClick: function (key) {
+          var hd = H.capex; if (!hd) return;
+          var vis = hd.isVisible ? hd.isVisible(key) : !ST.hiddenSeries[key];
+          if (!hd.setVisible(key, !vis)) { shake(host.querySelector('[data-key="' + key + '"]')); return; }
+          ST.hiddenSeries[key] = vis;
+          H.capexLegend.setOff(key, vis);
+        }
+      });
+      Object.keys(ST.hiddenSeries).forEach(function (k) { if (ST.hiddenSeries[k]) H.capexLegend.setOff(k, true); });
+    } else H.capexLegend.update(items);
+    srTable('lc-capex-sr', ['Year'].concat(d.seriesMeta.map(function (m) { return m.label; })).concat(['Total', 'Cumulative']),
+      d.years.map(function (y, i) { return [y].concat(d.seriesMeta.map(function (m) { return fmtK(d.series[m.key][i]); })).concat([fmtK(d.totals[i]), fmtM(d.cumulative[i])]); }));
+  };
+
+  /* 3.4 Condition Profile */
+  var GRADE_COLOR = { A: '--green', B: null, C: '--sev-medium', D: '--sev-critical' };
+  function gradeColor(g) { return g === 'B' ? lcColor('--lc-green-light', '#7FCE81') : GRADE_COLOR[g]; }
+  R.lcCondition = function (opts, scope) {
+    var d = D().condition(scope); H.condition = d;
+    if (!d.n) { empty('lcCondition', 'No assets in this area.'); return; }
+    empty('lcCondition', null);
+    var rows = d.rows.map(function (r) { return { key: r.key, label: r.label, pctText: r.pct + '%', fills: [{ pct: r.pct, color: gradeColor(r.key) }] }; });
+    if (!H.condBars) H.condBars = FDD.charts.hbarRows(byId('lc-condition-bars'), { layout: 'inline', rows: rows, ariaLabel: 'Condition profile',
+      tooltip: function (row) {
+        var r = H.condition.rows.filter(function (x) { return x.key === row.key; })[0]; if (!r) return null;
+        return { title: r.label + ' · ' + r.count + ' ' + plural(r.count, 'asset') + ' (' + r.pct + '%)', rows: [{ label: r.desc }], foot: 'Since last survey: ' + r.prev + ' (' + (r.delta > 0 ? '+' : (r.delta < 0 ? '−' : '±')) + Math.abs(r.delta) + ')' };
+      },
+      onClick: function (row) {
+        var sc = ST.ctx.scopeFor('lcCondition');
+        openAssets({ chips: scopeChips(sc).concat([{ key: 'cond', label: 'Condition', value: row.key }]), filter: Object.assign(scopeFilter(sc), { cond: row.key }), opener: byId('lc-condition-bars') });
+      } });
+    else H.condBars.update(rows);
+    byId('lc-condition-bars').setAttribute('aria-label', 'Condition profile: ' + d.rows.map(function (r) { return r.label + ' ' + r.pct + '%'; }).join(', '));
+    srTable('lc-condition-sr', ['Grade', 'Assets', 'Share'], d.rows.map(function (r) { return [r.label, r.count, r.pct + '%']; }));
+  };
+
+  /* 3.5 Replacement Cost by System (10 year) */
+  var SYS_COLOR = { 'HVAC': '--blue', 'Electrical': null, 'Fire & Life Safety': '--sev-critical', 'Vertical Transport': null, 'Plumbing': null, 'Small Power': '--sev-medium', 'Other': '--grey-segment' };
+  function sysColor(k) {
+    if (k === 'Electrical') return lcColor('--lc-orange', '#FF8135');
+    if (k === 'Vertical Transport') return lcColor('--lc-purple', '#A845FC');
+    if (k === 'Plumbing') return lcColor('--lc-blue-light', '#70ACFC');
+    return SYS_COLOR[k];
+  }
+  R.lcSystems = function (opts, scope) {
+    var d = D().systems(scope); H.systems = d;
+    if (d.empty) { empty('lcSystems', 'No replacements planned in 2026–2035.'); return; }
+    empty('lcSystems', null);
+    var rows = d.rows.map(function (r) { return { key: r.key, label: r.label, valueText: fmtM(r.value), dim: false, fills: [{ pct: r.fill, color: sysColor(r.key) }] }; });
+    if (!H.sysBars) H.sysBars = FDD.charts.hbarRows(byId('lc-systems-bars'), { layout: 'inline', rows: rows,
+      tooltip: function (row) {
+        var dd = H.systems, r = dd.rows.filter(function (x) { return x.key === row.key; })[0]; if (!r) return null;
+        var foot = r.key === 'Small Power' ? 'Included in Electrical (' + fmtM(dd.elec) + ')' : (r.share + '% of the 10-year plan' + (r.key === 'Electrical' ? ' · incl. Small Power ' + fmtM(dd.smallPower) : ''));
+        return { title: r.label + ' · ' + fmtM(r.value), rows: [{ label: '2026–2030', value: fmtK(r.y5) }, { label: '2031–2035', value: fmtK(r.y10b) }, { label: 'Assets', value: r.assets + ' due 2026–2035' }], foot: foot };
+      },
+      onClick: function (row) {
+        var sc = ST.ctx.scopeFor('lcSystems'), r = H.systems.rows.filter(function (x) { return x.key === row.key; })[0];
+        openPlan('CAPEX plan · 2026–2035 · ' + row.label, Object.assign({ site: sc.siteId, area: sc.areaId, from: 2026, to: 2035 }, r.filter), byId('lc-systems-bars'));
+      } });
+    else H.sysBars.update(rows);
+    var host = byId('lc-systems-bars');
+    d.rows.forEach(function (r) { var li = host.querySelector('[data-key="' + r.key + '"]'); if (li) li.classList.toggle('lc-zero', r.value === 0); });
+    srTable('lc-systems-sr', ['System', '10-year plan'], d.rows.map(function (r) { return [r.label, fmtM(r.value)]; }));
+    if (opts.flash && changed('systems', d.rows.map(function (r) { return r.value; }))) K().flash(card('lcSystems')); else changed('systems', d.rows.map(function (r) { return r.value; }));
+  };
+
+  /* 3.6 5 / 10 / 25 Year Outlook */
+  var OL_COLOR = { y5: '--lc-outlook-1', y10: '--lc-outlook-2', y25: '--blue' };
+  R.lcOutlook = function (opts, scope) {
+    var d = D().outlook(scope); H.outlook = d;
+    var fz = { fromZero: !!opts.initial };
+    d.horizons.forEach(function (hz) {
+      K().countUp(byId('lc-ol-' + hz.key + '-n'), hz.assets, function (v) { return fmtInt(v); }, fz);
+      K().countUp(byId('lc-ol-' + hz.key + '-c'), hz.capex, fmtM, fz);
+      var bar = byId('lc-ol-' + hz.key + '-bar');
+      bar.style.height = hz.barPx.toFixed(1) + 'px';
+      bar.style.background = hz.assets > 0 ? 'var(' + OL_COLOR[hz.key] + ')' : 'var(--bar-track)';
+      setText(byId('lc-ol-' + hz.key + '-share'), hz.share + '% of total assets');
+      if (opts.flash && changed('ol:' + hz.key, [hz.assets, hz.capex])) K().flash(ST.view.querySelector('.lc-ol[data-key="' + hz.key + '"]'));
+      else changed('ol:' + hz.key, [hz.assets, hz.capex]);
+    });
+  };
+  function outlookTip(key) {
+    var d = H.outlook; if (!d) return null;
+    var hz = d.horizons.filter(function (x) { return x.key === key; })[0]; if (!hz) return null;
+    return { title: hz.label + ' · 2026 – ' + hz.to, rows: [{ label: 'Assets due', value: String(hz.assets) }, { label: 'CAPEX plan', value: fmtM(hz.capex) },
+      { label: 'Like-for-like replacement', value: fmtM(hz.dueValue) }, { label: 'Share of register value', value: hz.share + '% of ' + fmtM(hz.register) }], foot: 'Grade C/D among them: ' + hz.cd };
+  }
+
+  /* 3.7 Upcoming Warranty Expiries */
+  function assetLink(r) {
+    return h('button', { type: 'button', 'class': 'lc-link', onclick: function (e) { e.stopPropagation(); K().openAsset(r.fddTag || r.name, e.currentTarget); } }, r.name);
+  }
+  function actionPill(r) {
+    var el = K().pill(r.action === 'Review' ? 'red' : 'amber', r.action);
+    el.classList.add('lc-action');
+    hoverTip(el, function () {
+      return r.action === 'Review' ? r.defects + ' open ' + plural(r.defects, 'defect') + ' · raise warranty claims before ' + r.endText : 'No open defects · decide renewal or extension';
+    });
+    return el;
+  }
+  R.lcWarranty = function (opts, scope) {
+    var rows = D().warrantyExpiries(scope);
+    if (!rows.length) { empty('lcWarranty', 'No warranties expire in the next 12 months.'); return; }
+    empty('lcWarranty', null);
+    if (!H.wTable) H.wTable = K().table(byId('lc-warranty-table'), {
+      ariaLabel: 'Upcoming warranty expiries', rows: rows, sort: { key: 'end', dir: 'asc' }, rowKey: function (r) { return r.id; },
+      columns: [
+        { key: 'name', label: 'Asset', cls: 'lc-c-asset', sort: function (r) { return r.name; }, render: assetLink },
+        { key: 'system', label: 'System', sort: true },
+        { key: 'end', label: 'Warranty end', cls: 'lc-c-red', sort: function (r) { return r.endMs; }, render: function (r) { return r.endText; } },
+        { key: 'supplier', label: 'Supplier', sort: true },
+        { key: 'action', label: 'Action', cls: 'lc-c-action', sort: function (r) { return r.action === 'Review' ? 0 : 1; }, render: actionPill }
+      ],
+      onRow: function (r, tr) { openAsset(r.id, tr); },
+      onRender: function () { scrollFade(byId('lc-warranty-wrap')); }
+    });
+    else H.wTable.update(rows, { flash: !!opts.flash });
+    scrollFade(byId('lc-warranty-wrap'));
+  };
+  function scrollFade(wrap) {
+    if (!wrap) return;
+    if (!wrap._lcFade) { wrap._lcFade = true; wrap.addEventListener('scroll', function () { scrollFade(wrap); }, { passive: true }); }
+    var more = wrap.scrollHeight - wrap.clientHeight - wrap.scrollTop > 2;
+    wrap.classList.toggle('has-more', more);
+  }
+
+  /* 3.8 Condition by Floor / Area */
+  function floorColor(v) { return v <= 2.5 ? '--green' : (v < 3.0 ? '--amber' : (v < 3.5 ? lcColor('--lc-orange', '#FF8135') : '--sev-critical')); }
+  R.lcFloors = function (opts, scope) {
+    var d = D().floors(scope); H.floors = d;
+    if (!d.rows.length) { empty('lcFloors', 'No assets in this area.'); return; }
+    empty('lcFloors', null);
+    if (!H.fTable) H.fTable = K().table(byId('lc-floors-table'), {
+      ariaLabel: 'Condition by floor or area', rows: d.rows, rowKey: function (r) { return r.key; },
+      columns: [
+        { key: 'name', label: 'Floor / Area', width: 30, cls: 'lc-c-floor', sort: function (r) { return r.order; } },
+        { key: 'avg', label: 'Avg condition', width: 40, sort: function (r) { return r.avg; }, dir: 'desc', render: function (r) {
+          var pct = r.avg == null ? 0 : Math.pow(r.avg / 4, 0.8) * 100;
+          return h('span', { 'class': 'lc-avg' }, h('span', { 'class': 'lc-avg-track' }, h('span', { 'class': 'lc-avg-fill', style: { width: pct.toFixed(1) + '%', background: K().cssColor(floorColor(r.avg)) } })),
+            h('span', { 'class': 'lc-avg-val' }, r.avg == null ? '—' : r.avg.toFixed(1)));
+        } },
+        { key: 'cost10', label: 'Est. renewal cost (10Y)', width: 30, cls: 'cell-right', thCls: 'cell-right lc-th-wrap', sort: function (r) { return r.cost10; }, dir: 'desc', render: function (r) { return fmtM(r.cost10); } }
+      ],
+      onRow: function (r, tr) { openAssets({ chips: [{ key: 'area', label: 'Area', value: r.name }], filter: { area: r.key }, opener: tr }); },
+      onRender: function (tbody, list) {
+        Array.prototype.forEach.call(tbody.querySelectorAll('tr[data-key]'), function (tr) {
+          hoverTip(tr, function () {
+            var r = (H.floors.rows || []).filter(function (x) { return x.key === tr.getAttribute('data-key'); })[0]; if (!r) return null;
+            return { title: r.name + ' · avg condition ' + (r.avg == null ? '—' : r.avg.toFixed(1)), rows: [{ label: 'A ' + r.counts.A + ' · B ' + r.counts.B + ' · C ' + r.counts.C + ' · D ' + r.counts.D },
+              { label: '10-year plan', value: fmtM(r.cost10) }, { label: 'Largest system', value: r.largest ? r.largest + ' ' + fmtM(r.largestValue) : '—' }], foot: r.n + ' ' + plural(r.n, 'asset') + ' located here' };
+          });
+        });
+      }
+    });
+    else H.fTable.update(d.rows, { flash: !!opts.flash });
+  };
+
+  /* 3.9 Assets Due for Replacement */
+  /** Dense-table type label: long CAFM type names are abbreviated in the TYPE column; the full name shows on hover. */
+  var TYPE_SHORT = { 'Distribution Board': 'Dist. Board', 'Access Control': 'Access Ctrl', 'Emergency Lighting': 'Emerg. Light', 'BMS Controller': 'BMS Ctrl', 'Sprinkler Pump': 'Sprinkler Pump', 'Roller Shutter': 'Roller Shutter' };
+  function typeCell(r) {
+    var short = TYPE_SHORT[r.type];
+    if (!short || short === r.type) return r.type;
+    var s = h('span', null, short); s.setAttribute('title', r.type); return s;
+  }
+  R.lcDue = function (opts, scope) {
+    var rows = D().due(scope);
+    if (!rows.length) {
+      empty('lcDue', 'No assets due for replacement in 2026–2030.', { label: 'View 25-year plan', onClick: function (e) { var sc = ST.ctx.scopeFor('lcDue'); openPlan('CAPEX plan · 2026–2050', { site: sc.siteId, area: sc.areaId, from: 2026, to: 2050 }, e.currentTarget, { key: 'year', dir: 'asc' }); } });
+      return;
+    }
+    empty('lcDue', null);
+    if (!H.dTable) H.dTable = K().table(byId('lc-due-table'), {
+      ariaLabel: 'Assets due for replacement', rows: rows, sort: { key: 'rem', dir: 'asc' }, rowKey: function (r) { return r.id; },
+      columns: [
+        { key: 'name', label: 'Asset', width: 16.2, cls: 'lc-c-asset', sort: function (r) { return r.name; }, render: assetLink },
+        { key: 'type', label: 'Type', width: 14.4, sort: true, render: typeCell },
+        { key: 'area', label: 'Area', width: 11.8, sort: true },
+        { key: 'grade', label: 'Condition', width: 11.6, cls: 'cell-center', thCls: 'cell-center', sort: function (r) { return 'ABCD'.indexOf(r.grade); }, dir: 'desc', render: function (r) { return condPill(r.grade, true); } },
+        { key: 'rem', label: 'Remaining life', width: 15.6, sort: function (r) { return r.remMonths; }, render: function (r) {
+          var s = h('span', { 'class': remClass(r.grade) }, r.remText);
+          hoverTip(s, function () { return r.remMonths + ' ' + plural(r.remMonths, 'month') + ' · end of life ' + r.eolText; });
+          return s;
+        } },
+        { key: 'replYear', label: 'Replacement year', width: 18.4, cls: 'lc-c-red', sort: function (r) { return r.replYearRaw; } },
+        { key: 'replCost', label: 'Est. cost', width: 12, cls: 'cell-right', thCls: 'cell-right', sort: function (r) { return r.replCost; }, dir: 'desc', render: function (r) {
+          var s = h('span', null, fmtGBP(r.replCost));
+          hoverTip(s, function () { return 'Like-for-like ' + fmtGBP(r.replCost) + ' · CAPEX plan ' + fmtGBP(r.capex) + ' (' + r.basis + ')'; });
+          return s;
+        } }
+      ],
+      onRow: function (r, tr) { openAsset(r.id, tr); },
+      onRender: function () { scrollFade(byId('lc-due-wrap')); }
+    });
+    else H.dTable.update(rows, { flash: !!opts.flash });
+    scrollFade(byId('lc-due-wrap'));
+  };
+
+  /* 3.10 Lifecycle Risk by Asset Type */
+  function riskColor(s) { return s >= 70 ? '--sev-critical' : (s >= 60 ? '--sev-high' : (s >= 50 ? '--orange' : (s >= 20 ? '--sev-medium' : '--green'))); }
+  R.lcRisk = function (opts, scope) {
+    var d = D().risk(scope); H.risk = d;
+    var host = byId('lc-risk-bars'), head = ST.view.querySelector('.lc-risk-head');
+    if (!d.length) { empty('lcRisk', 'No asset types with poor-condition assets.'); return; }
+    empty('lcRisk', null);
+    if (head) head.hidden = false;
+    var rows = d.map(function (g) { return { key: g.key, label: g.name, metaText: String(g.poor), fills: [{ pct: g.score, color: riskColor(g.score) }] }; });
+    if (!H.riskBars) H.riskBars = FDD.charts.hbarRows(host, { layout: 'inline', rows: rows,
+      tooltip: function (row) {
+        var g = H.risk.filter(function (x) { return x.key === row.key; })[0]; if (!g) return null;
+        return { title: g.name + ' · risk score ' + g.score, rows: [{ label: 'Poor condition', value: g.poor + ' (' + g.d + ' D · ' + g.c + ' C)' }, { label: 'Consequence weight', value: g.weight.toFixed(2) },
+          { label: 'C/D due by 2030', value: String(g.due2030) }], foot: 'Score = (2 × D + C) × weight, max 100' };
+      },
+      onClick: function (row) {
+        var sc = ST.ctx.scopeFor('lcRisk');
+        openAssets({ chips: scopeChips(sc).concat([{ key: 'risk', label: 'Risk group', value: row.label }, { key: 'cond', label: 'Condition', value: 'C/D' }]), filter: Object.assign(scopeFilter(sc), { risk: row.key, cond: 'CD' }), opener: host });
+      } });
+    else H.riskBars.update(rows);
+    host.setAttribute('aria-label', 'Lifecycle risk by asset type: ' + d.map(function (g) { return g.name + ' ' + g.poor + ' poor, score ' + g.score; }).join('; '));
+    srTable('lc-risk-sr', ['Asset type', 'Poor condition', 'Risk score'], d.map(function (g) { return [g.name, g.poor, g.score]; }));
+  };
+
+  /* 3.11 Warranty Status */
+  var WS_COLOR = { Active: '--green', Expiring: '--amber', Expired: '--sev-critical', Unknown: '--grey-dot' };
+  function wsFilterValue(key) { return D().warrantyLabel[key]; }
+  function wsClick(key, opener) {
+    var sc = ST.ctx.scopeFor('lcWarrantyStatus');
+    openAssets({ chips: scopeChips(sc).concat([{ key: 'warranty', label: 'Warranty', value: wsFilterValue(key) }]), filter: Object.assign(scopeFilter(sc), { warranty: key }), opener: opener,
+      sort: key === 'Expiring' ? { key: 'warranty', dir: 'asc' } : null });
+  }
+  function wsTip(seg) {
+    var d = H.wstatus; if (!d) return null;
+    var s = d.segments.filter(function (x) { return x.key === seg.key; })[0]; if (!s) return null;
+    var rows = [{ color: token(WS_COLOR[s.key]), label: s.count + ' ' + plural(s.count, 'asset') + ' · ' + s.pct + '%' }];
+    if (s.next) rows.push({ label: (s.key === 'Expired' ? 'Latest: ' : 'Next: ') + s.next.name + ' · ' + s.next.text });
+    return { title: s.label, rows: rows, foot: s.key === 'Expiring' ? d.prevExpiring + ' a year ago' : (s.key === 'Unknown' ? 'No warranty record on file' : null) };
+  }
+  R.lcWarrantyStatus = function (opts, scope) {
+    var d = D().warrantyStatus(scope); H.wstatus = d;
+    var segs = d.segments.map(function (s) { return { key: s.key, label: s.label, value: s.count, color: WS_COLOR[s.key] }; });
+    if (!H.pie || opts.theme) {
+      if (H.pie && isFn(H.pie.destroy)) H.pie.destroy();
+      H.pie = FDD.charts.pie(byId('lc-warranty-donut'), { segments: segs, cutout: '74%', rotation: 0, labels: false,
+        ariaLabel: 'Warranty status',
+        tooltip: function (seg) { return wsTip(seg); },
+        onHover: function (key) { var ul = byId('lc-donut-legend'); Array.prototype.forEach.call(ul.children, function (li) { li.classList.toggle('is-active', key != null && li.getAttribute('data-key') === key); }); },
+        onClick: function (key) { wsClick(key, byId('lc-warranty-donut')); } });
+    } else H.pie.update(segs);
+    K().countUp(byId('lc-donut-value'), d.total, function (v) { return fmtInt(v); }, { fromZero: !!opts.initial });
+    byId('lc-warranty-donut').setAttribute('aria-label', 'Warranty status: ' + d.segments.map(function (s) { return s.label.replace('<', 'under') + ' ' + s.count; }).join(', ') + ' of ' + d.total);
+    var ul = byId('lc-donut-legend');
+    d.segments.forEach(function (s) {
+      var li = ul.querySelector('[data-key="' + s.key + '"]');
+      if (!li) {
+        li = h('li', { 'class': 'lc-dl-row', 'data-key': s.key, tabindex: '0', role: 'button' },
+          h('span', { 'class': 'lc-dl-dot', style: { background: K().cssColor(WS_COLOR[s.key]) } }), h('span', { 'class': 'lc-dl-label' }, s.label), h('span', { 'class': 'lc-dl-count' }), h('span', { 'class': 'lc-dl-pct' }));
+        li.addEventListener('pointerenter', function () { if (H.pie) H.pie.highlight(s.key); li.classList.add('is-active'); });
+        li.addEventListener('pointerleave', function () { if (H.pie) H.pie.highlight(null); li.classList.remove('is-active'); tipHide(); });
+        li.addEventListener('focus', function () { if (H.pie) H.pie.highlight(s.key); });
+        li.addEventListener('blur', function () { if (H.pie) H.pie.highlight(null); tipHide(); });
+        hoverTip(li, function () { return wsTip({ key: s.key }); });
+        activate(li, function () { wsClick(s.key, li); });
+        ul.appendChild(li);
+      }
+      setText(li.querySelector('.lc-dl-count'), fmtInt(s.count));
+      setText(li.querySelector('.lc-dl-pct'), s.pct + '%');
+      if (opts.flash && changed('ws:' + s.key, s.count)) K().flash(li); else changed('ws:' + s.key, s.count);
+    });
+    srTable('lc-wstatus-sr', ['Status', 'Assets', 'Share'], d.segments.map(function (s) { return [s.label, s.count, s.pct + '%']; }));
+  };
+
+  /* 3.12 Lifecycle Insights & Recommended Actions */
+  var TAG_PILL = { 'High impact': 'pill pill--red', 'Medium impact': 'pill pill--amber', 'Planning': 'pill pill--blue', 'Data quality': 'pill lc-pill-slate' };
+  function insightAction(it, opener) {
+    var sc = ST.ctx.scopeFor('lcInsights'), base = scopeFilter(sc), chips = scopeChips(sc), a = it.action || {};
+    if (a.kind === 'assets') openAssets({ chips: chips.concat([{ key: 'assets', label: 'Assets', value: a.label }]), filter: Object.assign(base, { assets: a.assets }), opener: opener, sort: { key: 'remMonths', dir: 'asc' } });
+    else if (a.kind === 'warranty') openAssets({ chips: chips.concat([{ key: 'warranty', label: 'Warranty', value: 'Expiring < 12 months' }]), filter: Object.assign(base, { warranty: 'Expiring' }), opener: opener, sort: { key: 'warranty', dir: 'asc' } });
+    else if (a.kind === 'analysis') openAnalysis(a.zoneId, opener);
+    else if (a.kind === 'cwarranty') openAssets({ chips: chips.concat([{ key: 'cond', label: 'Condition', value: 'C' }, { key: 'warranty', label: 'Warranty', value: 'In force' }]), filter: Object.assign(base, { cond: 'C', warranty: 'InForce' }), opener: opener });
+    else openPlan('CAPEX plan · ' + (a.from || 2026) + '–' + (a.to || 2050), { site: sc.siteId, area: sc.areaId, from: a.from || 2026, to: a.to || 2050 }, opener, { key: 'year', dir: 'asc' });
+  }
+  R.lcInsights = function (opts, scope) {
+    var items = D().insights(scope);
+    var host = byId('lc-insights');
+    if (!items.length) { empty('lcInsights', 'No lifecycle actions for this selection.'); return; }
+    empty('lcInsights', null);
+    var prev = H.insSig || {}, next = {};
+    var ol = host.querySelector('ol.lc-ins') || host.appendChild(h('ol', { 'class': 'lc-ins' }));
+    K().clear(ol);
+    items.forEach(function (it) {
+      var li = h('li', { 'class': 'lc-ins-row lc-ins-row--' + it.id, 'data-key': it.id, tabindex: '0' },
+        h('span', { 'class': 'lc-ins-rank', 'aria-hidden': 'true' }, String(it.rank)),
+        h('div', { 'class': 'lc-ins-body' }, h('div', { 'class': 'lc-ins-title', title: it.title }, it.title), h('div', { 'class': 'lc-ins-desc', title: it.desc }, it.desc)),
+        h('span', { 'class': 'lc-ins-tag' }, h('span', { 'class': TAG_PILL[it.tag] || 'pill' }, it.tag)));
+      var btn = h('button', { type: 'button', 'class': 'btn btn--outline btn--sm lc-ins-btn' }, h('span', null, it.button), K().icon('arrowRight', 'lc-ins-arrow'));
+      btn.addEventListener('click', function (e) { e.stopPropagation(); insightAction(it, btn); });
+      li.appendChild(btn);
+      li.addEventListener('click', function () { insightAction(it, li); });
+      li.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target === li) { e.preventDefault(); insightAction(it, li); } });
+      ol.appendChild(li);
+      var sig = it.title + '|' + it.desc; next[it.id] = sig;
+      if (opts.flash && prev[it.id] != null && prev[it.id] !== sig) K().flash(li);
+    });
+    H.insSig = next;
+  };
+
+  /* ---------------------------------------------------------------------
+     Stack (row 2 right) — hide when both cards are hidden, widen CAPEX (§2)
+     --------------------------------------------------------------------- */
+  function syncStack() {
+    var stack = byId('lc-stack'), a = card('lcCondition'), b = card('lcSystems'), cx = card('lcCapex');
+    if (!stack || !a || !b) return;
+    var both = a.hidden && b.hidden;
+    stack.hidden = both;
+    stack.classList.toggle('is-single', !both && (a.hidden || b.hidden));
+    if (cx) { cx.style.setProperty('--span', both ? '12' : '8'); }
+  }
+
+  /* ---------------------------------------------------------------------
+     Module definition
+     --------------------------------------------------------------------- */
+  var ORDER = ['lcHealth', 'lcSummary', 'lcCapex', 'lcCondition', 'lcSystems', 'lcOutlook', 'lcWarranty', 'lcFloors', 'lcDue', 'lcRisk', 'lcWarrantyStatus', 'lcInsights'];
+  var def = {
+    id: 'lifecycle',
+    title: 'Asset Lifecycle',
+    subtitle: 'Condition-led capital planning and replacement forecasting',
+    showUpdated: true,
+    showRange: false,
+    library: { available: [ // SPEC-lifecycle §4.5 "Available" (Coming soon)
+      { title: 'Maintenance Cost vs Replacement', desc: 'Repair spend against replacement cost per asset' },
+      { title: 'Spares & Obsolescence', desc: 'Parts availability and manufacturer end-of-support dates' },
+      { title: 'Embodied Carbon of Replacements', desc: 'Carbon impact of the 25-year replacement plan' },
+      { title: 'Survey Programme', desc: 'Condition survey schedule and surveyor progress' }
+    ] },
+    rangeScoped: [],
+    summaryLine: function (scope) { var d = D(); return d ? d.summaryLine(scope && scope.siteId) : ''; },
+    areas: function (siteId) { var d = D(); return d ? d.areas(siteId) : (C ? C.zones(siteId) : []); },
+    live: { intervalMs: [20000, 40000], tick: function () { var d = D(); return d ? d.tick() : null; } },
+    mount: function (view, ctx) {
+      ST.ctx = ctx; ST.view = view; this.ctx = ctx;
+      // Health card = button (explainer); ring tooltip
+      var hc = ctx.card('lcHealth');
+      if (hc) {
+        hc.setAttribute('role', 'button'); hc.setAttribute('tabindex', '0');
+        activate(hc, function () { openHealthExplainer(); });
+        hoverTip(byId('lc-health-ring'), healthTip);
+      }
+      // summary tiles
+      ['surveyed', 'poor', 'expiring', 'y5', 'y10', 'y25'].forEach(function (key) {
+        var el = tileEl(key); if (!el) return;
+        hoverTip(el, function () { return summaryTip(key); });
+        activate(el, function () { summaryClick(key, el); });
+      });
+      // outlook panels
+      Array.prototype.forEach.call(view.querySelectorAll('.lc-ol'), function (el) {
+        var key = el.getAttribute('data-key');
+        hoverTip(el, function () { return outlookTip(key); });
+        activate(el, function () {
+          var sc = ctx.scopeFor('lcOutlook'), to = key === 'y5' ? 2030 : (key === 'y10' ? 2035 : 2050);
+          openPlan('CAPEX plan · 2026–' + to + (sc.areaId !== 'all' ? ' · ' + zoneName(sc.areaId) : ''), { site: sc.siteId, area: sc.areaId, from: 2026, to: to }, el, { key: 'year', dir: 'asc' });
+        });
+      });
+      // CAPEX chart keyboard: Enter drills the active year (combo handles ←/→ and the tooltip)
+      // stack visibility follows the two cards' hidden state (Widget Library)
+      var mo = new MutationObserver(syncStack);
+      ['lcCondition', 'lcSystems'].forEach(function (w) { var c = ctx.card(w); if (c) mo.observe(c, { attributes: true, attributeFilter: ['hidden'] }); });
+      syncStack();
+    },
+    render: function (opts) {
+      opts = opts || {};
+      var ctx = ST.ctx; if (!ctx || !D()) return;
+      syncStack();
+      var run = {};
+      ORDER.forEach(function (wid) { if (R[wid]) run[wid] = R[wid]; });
+      ctx.run(run, opts);
     }
   };
   FDD.shell.register(def);
